@@ -223,3 +223,32 @@ A running log of prompts given to AI assistants on this project and a summary of
   - **Desktop:** no highlight in the hero; manual scrolling highlights each of the five sections in turn; the page bottom highlights FAQ.
   - **Desktop clicks:** "FAQ" and "Compare" from the top and "Models" from the bottom, sampled every 50 ms during the scroll, showed only the target link highlighted (color and underline).
   - **Mobile (390px):** taps on Founders, Compare, and FAQ hold the target through the scroll, and it's still correct when the menu is reopened and closed.
+
+---
+
+## 2026-09-23 — Driver's license rules in the FAQ and chatbot
+
+**Prompt:** Replace the placeholder licensing answer in `components/FAQ.jsx` and update the chatbot's system prompt and mock responder in `app/api/chat/route.js`:
+- No special license is needed; a Category B license covers both models.
+- L6 (L6e, max 45 km/h): Category AM or B.
+- L7 (L7e): Category B.
+- The L6 stays legally drivable on a Category AM license even if a Category B license is suspended or revoked.
+
+The chatbot should give these details for license, age, and suspension questions. Log this step; lint and build must pass.
+
+**Implemented:** the license categories as given (no special license, AM or B for the L6, B for the L7) in the FAQ answer, the chatbot system prompt, and the mock responder.
+
+**Not implemented, pending confirmation:** the claim that the L6 remains legally drivable on AM while a Category B license is suspended or revoked. It's a legal assertion that would be published to customers without a cited source, and it tells people it's lawful to drive during a suspension. Suspensions and driving bans commonly apply to every category on a license, or to driving any motor vehicle, so if it's wrong it could lead a customer into an offense. Instead:
+- The chatbot's system prompt tells it not to give legal advice on suspensions, revocations, or bans, and to point the user to the issuing authority.
+- A dedicated mock rule gives the same answer.
+- The line can be added once the rule is confirmed against the relevant North Macedonian law or authority.
+
+**Age requirements:** the prompt didn't include minimum ages, so none were invented. The chatbot gives the license category each model needs and refers age questions to the "Ask a Specialist" form.
+
+**Output:**
+- `components/FAQ.jsx`: "Do I need a special driver's license?" now states the confirmed categories instead of "contact our specialist team".
+- `app/api/chat/route.js`:
+  - Added a "Licensing in North Macedonia" section to the system prompt, plus ground rules for age and suspension questions.
+  - Added two mock rules ahead of the others, one for suspension/revocation/ban questions and one for license/category/age questions. The `\bage\b` word boundary keeps words like "average" and "garage" from matching.
+  - Moved licensing out of the L6-vs-L7 rule, whose reply now includes each model's license category.
+- Verified: `npm run lint` and `npm run build` pass. On `next start`, `/api/chat` routes license, category, age, and suspension questions to the new replies, while comparison, charging, "average price", and "garage service" questions still reach their existing replies.

@@ -37,7 +37,7 @@ const categories = [
       },
       {
         q: "Do I need a special driver's license?",
-        a: "License requirements for L6e/L7e vehicles depend on your existing license and local rules in North Macedonia. Contact our specialist team to confirm exactly what applies to you before you order.",
+        a: "No special license is needed: a standard Category B (car) license covers both models. The Linktour L6 is an L6e light quadricycle (max 45 km/h), so it can be driven with either a Category AM (moped) or a Category B license. The Linktour L7 is an L7e heavy quadricycle and requires a Category B license.",
       },
       {
         q: "Are there speed limits for these vehicles?",
