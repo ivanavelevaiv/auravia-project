@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --color-obsidian: #080c10;
+  --color-teal: #00f2fe;
+  --color-silver: #94a3b8;
+  --font-sans: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--color-obsidian);
+  color: #f8fafc;
+  font-family: var(--font-sans);
+}
+
+/* --nav-height is kept in sync with the sticky navbar by Navbar.jsx. */
+section[id] {
+  scroll-margin-top: var(--nav-height, 4rem);
+}

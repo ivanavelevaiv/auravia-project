@@ -1,0 +1,186 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Bot, Loader2, MessageCircle, Send, X } from "lucide-react";
+import { useBookingModal } from "@/lib/bookingModalContext";
+
+const QUICK_ACTIONS = [
+  { id: "compare", label: "Compare L6 vs L7", prompt: "What's the difference between the L6 and L7?" },
+  { id: "charging", label: "Charging Info", prompt: "How do I charge my Linktour vehicle at home?" },
+  { id: "test-drive", label: "Book Test Drive", modal: "test-drive" },
+];
+
+function ChatBubble({ role, content }) {
+  const isUser = role === "user";
+  return (
+    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+      <div
+        className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+          isUser
+            ? "bg-teal text-obsidian"
+            : "border border-silver/15 bg-white/[0.04] text-slate-100"
+        }`}
+      >
+        {content}
+      </div>
+    </div>
+  );
+}
+
+export default function ChatBot() {
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const scrollRef = useRef(null);
+  const { openModal } = useBookingModal();
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages, loading, open]);
+
+  const sendMessage = async (text) => {
+    const trimmed = text.trim();
+    if (!trimmed || loading) return;
+
+    const nextMessages = [...messages, { role: "user", content: trimmed }];
+    setMessages(nextMessages);
+    setInput("");
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: nextMessages }),
+      });
+      const data = await response.json();
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: data.reply ?? "Sorry, I couldn't find an answer to that." },
+      ]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Sorry, something went wrong — please try again." },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleQuickAction = (action) => {
+    if (action.modal) {
+      setOpen(false);
+      openModal(action.modal);
+      return;
+    }
+    sendMessage(action.prompt);
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    sendMessage(input);
+  };
+
+  return (
+    <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            role="dialog"
+            aria-label="Auravia Assistant chat"
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 16 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="flex h-[28rem] w-[22rem] max-w-[calc(100vw-3rem)] flex-col overflow-hidden rounded-2xl border border-teal/30 bg-obsidian shadow-[0_0_60px_-15px_var(--color-teal)]"
+          >
+            <div className="flex items-center gap-3 border-b border-silver/10 px-4 py-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-teal/10 text-teal">
+                <Bot className="h-4 w-4" />
+              </span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-slate-50">Auravia Assistant</p>
+                <p className="text-xs text-silver">Ask about the L6, L7, charging & more</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Close chat"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-silver/30 text-slate-100 transition-colors hover:border-teal hover:text-teal"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
+              <ChatBubble
+                role="assistant"
+                content="Hi! I'm the Auravia assistant. Ask me about the L6, L7, charging, or local warranty — or use a quick action below."
+              />
+              {messages.map((message, index) => (
+                <ChatBubble key={index} role={message.role} content={message.content} />
+              ))}
+              {loading && (
+                <div className="flex justify-start">
+                  <div className="flex items-center gap-2 rounded-2xl border border-silver/15 bg-white/[0.04] px-4 py-2.5 text-sm text-silver">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Thinking…
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-2 border-t border-silver/10 px-4 py-3">
+              {QUICK_ACTIONS.map((action) => (
+                <button
+                  key={action.id}
+                  type="button"
+                  onClick={() => handleQuickAction(action)}
+                  className="rounded-full border border-silver/30 px-3 py-1.5 text-xs font-medium text-slate-100 transition-colors hover:border-teal hover:text-teal"
+                >
+                  {action.label}
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={handleSubmit} className="flex items-center gap-2 border-t border-silver/10 p-3">
+              <input
+                type="text"
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                placeholder="Ask a question…"
+                className="flex-1 rounded-full border border-silver/20 bg-transparent px-4 py-2 text-sm text-slate-50 placeholder:text-silver/50 focus:border-teal focus:outline-none"
+              />
+              <button
+                type="submit"
+                disabled={loading || !input.trim()}
+                aria-label="Send message"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal text-obsidian transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.button
+        type="button"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4, ease: "easeOut", delay: 0.6 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setOpen((value) => !value)}
+        aria-label={open ? "Close chat" : "Open chat"}
+        aria-expanded={open}
+        className="flex h-14 w-14 items-center justify-center rounded-full bg-teal text-obsidian shadow-[0_0_30px_-8px_var(--color-teal)]"
+      >
+        {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+      </motion.button>
+    </div>
+  );
+}
