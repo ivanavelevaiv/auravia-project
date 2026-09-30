@@ -5,10 +5,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Bot, Loader2, MessageCircle, Send, X } from "lucide-react";
 import { useBookingModal } from "@/lib/bookingModalContext";
 
+// Labels and prompts are localized in dict.chat.quickActions.<key>.
 const QUICK_ACTIONS = [
-  { id: "compare", label: "Compare L6 vs L7", prompt: "What's the difference between the L6 and L7?" },
-  { id: "charging", label: "Charging Info", prompt: "How do I charge my Linktour vehicle at home?" },
-  { id: "test-drive", label: "Book Test Drive", modal: "test-drive" },
+  { key: "compare" },
+  { key: "charging" },
+  { key: "testDrive", modal: "test-drive" },
 ];
 
 function ChatBubble({ role, content }) {
@@ -28,7 +29,7 @@ function ChatBubble({ role, content }) {
   );
 }
 
-export default function ChatBot() {
+export default function ChatBot({ locale, dict }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -53,17 +54,17 @@ export default function ChatBot() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages }),
+        body: JSON.stringify({ messages: nextMessages, locale }),
       });
       const data = await response.json();
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: data.reply ?? "Sorry, I couldn't find an answer to that." },
+        { role: "assistant", content: data.reply ?? dict.noAnswer },
       ]);
     } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Sorry, something went wrong — please try again." },
+        { role: "assistant", content: dict.error },
       ]);
     } finally {
       setLoading(false);
@@ -76,7 +77,7 @@ export default function ChatBot() {
       openModal(action.modal);
       return;
     }
-    sendMessage(action.prompt);
+    sendMessage(dict.quickActions[action.key].prompt);
   };
 
   const handleSubmit = (event) => {
@@ -90,7 +91,7 @@ export default function ChatBot() {
         {open && (
           <motion.div
             role="dialog"
-            aria-label="Auravia Assistant chat"
+            aria-label={dict.dialogLabel}
             initial={{ opacity: 0, scale: 0.95, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 16 }}
@@ -102,13 +103,13 @@ export default function ChatBot() {
                 <Bot className="h-4 w-4" />
               </span>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-slate-50">Auravia Assistant</p>
-                <p className="text-xs text-silver">Ask about the L6, L7, charging & more</p>
+                <p className="text-sm font-semibold text-slate-50">{dict.title}</p>
+                <p className="text-xs text-silver">{dict.subtitle}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                aria-label="Close chat"
+                aria-label={dict.close}
                 className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-silver/30 text-slate-100 transition-colors hover:border-teal hover:text-teal"
               >
                 <X className="h-3.5 w-3.5" />
@@ -116,10 +117,7 @@ export default function ChatBot() {
             </div>
 
             <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
-              <ChatBubble
-                role="assistant"
-                content="Hi! I'm the Auravia assistant. Ask me about the L6, L7, charging, or local warranty — or use a quick action below."
-              />
+              <ChatBubble role="assistant" content={dict.greeting} />
               {messages.map((message, index) => (
                 <ChatBubble key={index} role={message.role} content={message.content} />
               ))}
@@ -127,7 +125,7 @@ export default function ChatBot() {
                 <div className="flex justify-start">
                   <div className="flex items-center gap-2 rounded-2xl border border-silver/15 bg-white/[0.04] px-4 py-2.5 text-sm text-silver">
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    Thinking…
+                    {dict.thinking}
                   </div>
                 </div>
               )}
@@ -136,12 +134,12 @@ export default function ChatBot() {
             <div className="flex flex-wrap gap-2 border-t border-silver/10 px-4 py-3">
               {QUICK_ACTIONS.map((action) => (
                 <button
-                  key={action.id}
+                  key={action.key}
                   type="button"
                   onClick={() => handleQuickAction(action)}
                   className="rounded-full border border-silver/30 px-3 py-1.5 text-xs font-medium text-slate-100 transition-colors hover:border-teal hover:text-teal"
                 >
-                  {action.label}
+                  {dict.quickActions[action.key].label}
                 </button>
               ))}
             </div>
@@ -151,13 +149,13 @@ export default function ChatBot() {
                 type="text"
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
-                placeholder="Ask a question…"
+                placeholder={dict.placeholder}
                 className="flex-1 rounded-full border border-silver/20 bg-transparent px-4 py-2 text-sm text-slate-50 placeholder:text-silver/50 focus:border-teal focus:outline-none"
               />
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
-                aria-label="Send message"
+                aria-label={dict.send}
                 className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal text-obsidian transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Send className="h-4 w-4" />
@@ -175,7 +173,7 @@ export default function ChatBot() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setOpen((value) => !value)}
-        aria-label={open ? "Close chat" : "Open chat"}
+        aria-label={open ? dict.close : dict.open}
         aria-expanded={open}
         className="flex h-14 w-14 items-center justify-center rounded-full bg-teal text-obsidian shadow-[0_0_30px_-8px_var(--color-teal)]"
       >

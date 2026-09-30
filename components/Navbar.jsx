@@ -12,8 +12,9 @@ import {
   SECTION_SCROLL_EVENT,
 } from "@/lib/navigation";
 import { useBookingModal } from "@/lib/bookingModalContext";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
-export default function Navbar() {
+export default function Navbar({ locale, dict, common }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [hovered, setHovered] = useState(null);
@@ -60,7 +61,8 @@ export default function Navbar() {
 
     const update = () => {
       frame = 0;
-      if (menuOpenRef.current) return;
+      // The bar can be gone if a queued frame or lock timer fires as the page is torn down.
+      if (menuOpenRef.current || !barRef.current) return;
       const navHeight = barRef.current.offsetHeight;
       const line = navHeight + (window.innerHeight - navHeight) * 0.3;
       const atBottom =
@@ -133,9 +135,9 @@ export default function Navbar() {
     >
       <div
         ref={barRef}
-        className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-3"
+        className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-3"
       >
-        <Link href="/" className="flex shrink-0 items-center gap-3">
+        <Link href={`/${locale}`} className="flex shrink-0 items-center gap-3">
           <span className="relative block h-10 w-10 overflow-hidden rounded-full ring-1 ring-silver/30">
             <Image
               src="/images/logo.png"
@@ -159,15 +161,15 @@ export default function Navbar() {
           {navLinks.map((link) => (
             <Link
               key={link.href}
-              href={`/${link.href}`}
+              href={`/${locale}${link.href}`}
               onClick={(event) => handleSectionLinkClick(event, link.href)}
               onMouseEnter={() => setHovered(link.href)}
               aria-current={activeHref === link.href ? "location" : undefined}
-              className={`relative px-4 py-2 text-sm font-medium transition-colors ${
+              className={`relative whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors ${
                 activeHref === link.href ? "text-teal" : "text-silver hover:text-slate-50"
               }`}
             >
-              {link.label}
+              {dict.links[link.key]}
               {(hovered ?? activeHref) === link.href && (
                 <motion.span
                   layoutId="nav-underline"
@@ -179,34 +181,41 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 lg:flex">
+        <div className="hidden items-center gap-2 lg:flex xl:gap-3">
+          <LanguageSwitcher locale={locale} labels={dict.language} />
           <button
             type="button"
             onClick={() => openModal("waitlist")}
-            className="inline-flex items-center gap-2 rounded-full border border-silver/40 px-4 py-2 text-sm font-medium text-slate-100 transition-colors hover:border-teal hover:text-teal"
+            aria-label={common.waitlist}
+            title={common.waitlist}
+            className="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-silver/40 px-2.5 py-2 text-sm font-medium text-slate-100 transition-colors hover:border-teal hover:text-teal xl:px-4"
           >
             <Users className="h-4 w-4" />
-            Waitlist
+            {/* Icon-only below xl so longer translations (e.g. Macedonian) fit the bar. */}
+            <span className="hidden xl:inline">{common.waitlist}</span>
           </button>
           <button
             type="button"
             onClick={() => openModal("test-drive")}
-            className="inline-flex items-center gap-2 rounded-full bg-teal px-4 py-2 text-sm font-semibold text-obsidian transition-transform hover:scale-[1.03]"
+            className="inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-teal px-4 py-2 text-sm font-semibold text-obsidian transition-transform hover:scale-[1.03]"
           >
             <CalendarCheck className="h-4 w-4" />
-            Book Test Drive
+            {common.bookTestDrive}
           </button>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setMenuOpen((open) => !open)}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-silver/30 text-slate-100 lg:hidden"
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          aria-expanded={menuOpen}
-        >
-          {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="flex items-center gap-3 lg:hidden">
+          <LanguageSwitcher locale={locale} labels={dict.language} />
+          <button
+            type="button"
+            onClick={() => setMenuOpen((open) => !open)}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-silver/30 text-slate-100"
+            aria-label={menuOpen ? dict.closeMenu : dict.openMenu}
+            aria-expanded={menuOpen}
+          >
+            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       <AnimatePresence
@@ -228,14 +237,14 @@ export default function Navbar() {
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
-                  href={`/${link.href}`}
+                  href={`/${locale}${link.href}`}
                   onClick={(event) => handleMobileLinkClick(event, link.href)}
                   aria-current={activeHref === link.href ? "location" : undefined}
                   className={`rounded-lg px-3 py-2.5 text-base font-medium transition-colors hover:bg-white/5 ${
                     activeHref === link.href ? "text-teal" : "text-silver hover:text-slate-50"
                   }`}
                 >
-                  {link.label}
+                  {dict.links[link.key]}
                 </Link>
               ))}
             </nav>
@@ -249,7 +258,7 @@ export default function Navbar() {
                 className="inline-flex items-center justify-center gap-2 rounded-full border border-silver/40 px-4 py-2.5 text-sm font-medium text-slate-100"
               >
                 <Users className="h-4 w-4" />
-                Waitlist
+                {common.waitlist}
               </button>
               <button
                 type="button"
@@ -260,7 +269,7 @@ export default function Navbar() {
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-teal px-4 py-2.5 text-sm font-semibold text-obsidian"
               >
                 <CalendarCheck className="h-4 w-4" />
-                Book Test Drive
+                {common.bookTestDrive}
               </button>
             </div>
           </motion.div>

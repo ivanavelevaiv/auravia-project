@@ -252,3 +252,401 @@ The chatbot should give these details for license, age, and suspension questions
   - Added two mock rules ahead of the others, one for suspension/revocation/ban questions and one for license/category/age questions. The `\bage\b` word boundary keeps words like "average" and "garage" from matching.
   - Moved licensing out of the L6-vs-L7 rule, whose reply now includes each model's license category.
 - Verified: `npm run lint` and `npm run build` pass. On `next start`, `/api/chat` routes license, category, age, and suspension questions to the new replies, while comparison, charging, "average price", and "garage service" questions still reach their existing replies.
+
+---
+
+## 2026-09-24 — English / Macedonian i18n (`/en`, `/mk`)
+
+**Prompt:** Add zero-dependency i18n for English (`en`) and Macedonian (`mk`):
+- `dictionaries/en.json` and `dictionaries/mk.json` covering the Navbar, Hero, Model Showcase, Comparison, FAQ, and Booking Modals.
+- An async `getDictionary(locale)` in `lib/dictionaries.js`.
+- `middleware.js` for `/en` and `/mk` routing, with `en` as the default.
+- Move `app/page.js` and `app/layout.js` into `app/[locale]/`.
+- A `components/LanguageSwitcher.jsx` in the Navbar that toggles the URL between locales.
+- Pass the dictionary into the components in place of hardcoded text.
+
+Log this step and verify `npm run build` passes.
+
+**Deviation from the prompt: `proxy.js`, not `middleware.js`.** This project runs Next.js 16.3, where the `middleware.js` convention is deprecated and renamed to `proxy.js` (same API, new file/function name — see `node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/middleware.md`). The routing follows the bundled internationalization guide (`01-app/02-guides/internationalization.md`).
+
+**Routing (`proxy.js`):** every path without a locale prefix is redirected to one.
+- **Which locale:** the `NEXT_LOCALE` cookie set by the switcher wins; otherwise a Macedonian `Accept-Language` gets `/mk`, and everyone else gets `/en`.
+- **Excluded:** the matcher skips `_next`, `/api`, and anything with a file extension (images, favicon).
+- **Unknown paths:** `app/[locale]/layout.js` sets `generateStaticParams` for both locales and `dynamicParams = false`. `app/[locale]/[...rest]/page.js` sends unknown paths to a localized `app/[locale]/not-found.js`, which reads the locale via `next/root-params` and renders inside the normal site layout.
+- **Metadata:** per-locale `<title>`/description, `<html lang>`, canonical, and `hreflang` alternates.
+
+**Dictionaries:** 194 keys in each file, checked for parity by script. Everything visible is translated:
+- the Navbar, Hero, Model Showcase (spec labels, taglines, photo alt/aria text), Comparison table and fuel calculator, Storyline, Founders, FAQ (all 9 Q&As and the specialist form), Booking modals, Footer, the ChatBot UI, and the 404 page.
+- `lib/models.js`, `lib/milestones.js`, and `lib/navigation.js` now hold only language-neutral data (ids, images, numbers with units). Anything with words or decimal commas lives in the dictionaries: "7,2 kWh", "челични фелни", "номинална/врвна".
+
+**Design choices:**
+- **Dictionary slices are passed as props**, per the prompt and Next's guide. `lib/dictionaries.js` loads JSON via dynamic `import()`, so each request only loads its own locale. It deliberately skips `import "server-only"`: that package isn't installed and the prompt asked for zero dependencies.
+- **Supabase data stays in English.** Booking modal `<option>` values ("Morning (9:00 – 12:00)", "Young Driver", "Pre-Order Deposit") are unchanged and only the labels are translated, so the `test_drives`/`waitlist` tables don't get mixed-language values.
+- **Chatbot:** `ChatBot.jsx` sends `locale` to `/api/chat`.
+  - The system prompt gets a language instruction: Macedonian in Cyrillic, using the site's Macedonian button labels.
+  - The mock replies come from `chat.replies` in the dictionaries.
+  - The mock matcher has Macedonian keywords too, anchored with a Unicode lookbehind (`(?<!\p{L})`) because `\b` doesn't work with Cyrillic. Unanchored, the pricing stem "чин" matched "начин" ("how/way") and sent "На кој начин се полни…" to the pricing answer.
+- **Language switcher:** an EN/MK pill using the same Framer Motion `layoutId` animation as the model tabs, visible in the bar on desktop and mobile.
+  - It swaps the first path segment, keeps the `#section` hash, and does a soft `router.push(…, { scroll: false })` with no page reload.
+  - It sets the `NEXT_LOCALE` cookie.
+
+**Bugs found in end-to-end testing and fixed:**
+1. **Proxy only redirected `/`.** The matcher's `\\.` lost a backslash when the file was written through the shell, so it compiled to `.*..*` and excluded every path with two or more characters. Found by reading the compiled matcher in `.next/server/functions-config-manifest.json`, fixed, and re-verified: `/something` → `/en/something`.
+2. **Hydration mismatch (React #418) on `/mk`.** The calculator used `toLocaleString("mk-MK")`. Node formats that as "14.600", but Chromium ships reduced ICU data without Macedonian and renders "14,600". It now uses a small `formatInteger` with a per-locale `thousandsSeparator` from the dictionary.
+3. **Language switch lost the reader's place.** `scroll: false` keeps the same `scrollY`, but Macedonian text is longer, so a reader on FAQ ended up about 290px away. The switcher now records the section at the top of the viewport and the offset into it, and restores that in a `useLayoutEffect` after the new locale renders. FAQ stays at 64px before and after.
+4. **Macedonian navbar wrapped to two lines.** Longer labels ("Нашата приказна", "Листа на чекање", "Закажи тест-возење") made the bar 82px tall at 1280px and overflow by 131px at 1024px. Fixed with `whitespace-nowrap`, tighter link padding and gaps, and an icon-only Waitlist button (with `aria-label`/`title`) below `xl`. Measured at 1024/1152/1280/1440px in both locales: 64px bar, no overflow.
+5. A defensive null check in the scrollspy's `update()`, which threw `offsetHeight of null` once during navigation.
+
+**Verified:** `npm run lint` and `npm run build` pass. Playwright against `next start` passes all 28 checks:
+- **Redirects:** `/` goes to the right locale for English and Macedonian browsers, the saved cookie wins over the browser language, and static files and `/api` pass through untouched.
+- **Rendering:** both locales render fully localized; `<html lang>` and the document title update.
+- **Switcher:** EN→MK→EN keeps the hash and section, without a page reload.
+- **Navigation:** scrollspy and smooth-scroll work on `/mk`.
+- **Content:** Macedonian spec values and thousands separators render; booking labels are localized while option values stay English.
+- **Chatbot:** Macedonian replies for quick actions, Macedonian questions, and English questions asked on `/mk`.
+- **404:** `/mk/…` shows the localized 404.
+- **Mobile:** the switcher and menu work with no horizontal overflow.
+
+The remaining console errors are the test's intentional 404 and `/_next/image` 400s for gallery photos that don't exist yet (`public/images/L6/hero.jpg` etc.). Those errors predate this work, and the "photo coming soon" fallback covers them.
+
+**Follow-ups:**
+- The Macedonian copy was written for this step; have a native speaker review it before launch.
+- **Space Grotesk has no Cyrillic glyphs**, so all Macedonian text renders in the fallback system sans-serif. That's visible in the header, where "Auravia" and the Cyrillic labels use different fonts. Choosing a brand font with Cyrillic (or a Cyrillic pairing) is a design decision left open.
+
+---
+
+## 2026-09-25 — Real L6 photos and a four-colour showcase
+
+**Prompt:** Use the photos in `public/images/L6` for the L6 model, and the ones in the `diffcolors` folder to show that the model comes in 4 different colours — add that part to the page.
+
+**What the images are** (the `diffcolors` folder is inside `public/images/L6/`):
+- Five photos: front three-quarter (`img-5-12.jpg`), driving shot (`img-5-11.jpg`), interior/dashboard (`img-18-1-5.jpg`), panoramic sunroof at night (`img-5-13.jpg`), and a headlight detail (`img-5-14.jpg`).
+- `diffcolors/`: four identically framed side profiles, 1243×550 transparent PNGs. They match the four Alumi colours on Linktour's product page: `img-11-31` Moon White, `img-11-41` Sprout Green, `img-11-21` Rock Grey, `img-11-11` Starlit Black.
+
+**Output:**
+- `lib/models.js`:
+  - The L6 gallery now points at the five real photos, replacing four `hero/side/interior/rear.jpg` paths that never existed and always showed the "photo coming soon" fallback.
+  - Added a `colors` array: id, official name, swatch hex (sampled from each image's body panel and brightened slightly), and image, in Linktour's order.
+- New `components/ColorShowcase.jsx` (section `#colors`, placed right after the model showcase):
+  - A large stage with all four PNGs stacked and crossfading on opacity. Because the framing is identical, the car appears to repaint in place, and all four load up front, so switching never waits on a download.
+  - The PNGs have 275px of empty transparent space on the right. Instead of editing the files, the stage is sized to the car's measured bounds (x = 40–968) and the image is offset, so the car sits centred.
+  - A neutral spotlight keeps Starlit Black readable on the dark page, with a soft tint that follows the selected colour.
+  - Swatch buttons use `aria-pressed` and a Framer Motion `layoutId` ring, and the colour name updates through `aria-live`.
+  - A "Reserve in {colour}" button opens the reserve modal with model L6 and that colour pre-filled.
+- **Colour names stay in English on `/mk` too.** They're Linktour's official product names, like "Linktour L6". That also means the reserve form stores the same `color_preference` value in either language. The section's heading, description, alt text, and button text are translated (`colors.*` in both dictionaries).
+- `components/BookingModal.jsx`: `WaitlistForm` pre-fills `color_preference` from `prefill.color`.
+- **Image framing:** the photos are ~2:1, so the old 4:3 frames cut off the car.
+  - `components/Hero.jsx` now uses the front three-quarter shot with `objectPosition: 60% 50%`.
+  - `components/ModelShowcase.jsx` uses a 16:10, top-anchored frame. That fits every car shot, and the square interior photo keeps its screens in view.
+
+**Verified:** `npm run lint` and `npm run build` pass. Playwright on `next start`:
+- The L6 gallery shows no fallbacks, and none of the L6 images return an error.
+- Each of the four swatches shows only its own image, with a matching title, pressed state, alt text, and button label.
+- The reserve modal opens with model L6, "Pre-Order Deposit", and the colour pre-filled.
+- `/mk` on a 390px phone has no horizontal overflow, with the translated section copy.
+- Screenshots checked at desktop and mobile widths.
+
+**Still open:** the L7 has no photos wired up. Its gallery and hero still point at non-existent files, while `public/images/L7/` holds two unused images (`71.png`, `72.jpg`).
+
+---
+
+## 2026-09-28 — Second L6 interior photo
+
+**Prompt:** For the L6, add one more picture from the L6 folder, named interior2.
+
+**Output:**
+- `lib/models.js`: added `/images/L6/interior2.jpg` (a wide dashboard view through the windshield) to the L6 gallery, right after the first interior close-up. The gallery now has 6 photos.
+- No layout change was needed. The 16:10 top-anchored frame shows the steering wheel, both screens, and the windshield, and six thumbnails still fit in one row.
+- Verified: `npm run lint` and `npm run build` pass. On `next start`, the image loads with no errors, has no fallback, and has no horizontal overflow at 390px.
+- **Note:** the file is only 468×443, so it's upscaled in the ~530px-wide main frame and looks slightly soft, especially on high-DPI screens. A larger original (about 1100px wide or more) would fix that.
+
+
+---
+
+## 2026-09-28 — Specs checked against Linktour's PDF; missing specs and per-version equipment added
+
+**Prompt:** Go over `TechnicalSpecifications(en).pdf` and check that all specifications are correct and already present for both models. Follow-up: "yes update it" and "also add the missing specs to the site", covering the missing specs, a per-version equipment table, the wallbox FAQ fix, and `docs/linktour-specs.md`.
+
+**Check result:** every figure already on the site matched the PDF: battery, range, motor, charging, dimensions, ground clearance, mass, gradeability, and tyres.
+- **Top speed isn't in the PDF for either model.** 45 km/h comes from Linktour's product page, 90 km/h from the Auravia team.
+- **Per-version features are marked with dots and dashes drawn as vector graphics**, so they weren't in the PDF's text layer. No PDF renderer was installed, so I rendered the page with pdf.js (from cdnjs) inside Playwright's Chromium, in a scratch page with nothing added to the project, and read the matrix from the image.
+
+**Output:**
+- **Specs** (`lib/models.js`, both dictionaries): added drivetrain (rear-wheel drive, PMSM motor), drive modes (L6 Normal, L7 Normal/Sport), wheelbase (1800 mm), front/rear track (1310/1300 mm), and turning circle (4.5 m / 4,5 m). The spec sheet and comparison table now have 16 rows. Worded or decimal values are localized in the dictionaries; plain mm values stay in `models.js`. The new icons are registered in `ModelShowcase.jsx`.
+- **New `components/TrimFeatures.jsx`** (section `#trims`, after the comparison), with data in the new `lib/trims.js`:
+  - a "Standard on every version" checklist (14 items)
+  - a "What differs by version" table with Alumi / Plus / Pro under Linktour L6 and Elite / Elite+ under Linktour L7. It covers 11 rows: infotainment, rear camera, 60 W USB-C, climate, two-level heating, air circulation, seats, smart key, roof rack, and two app rows.
+  - Checks and dashes have screen-reader text ("Included" / "Not included").
+  - A note says which versions will be sold in North Macedonia is still being confirmed. The PDF lists Linktour's full range, and nothing in the project says Auravia will offer all five.
+- **Wallbox FAQ fix:** the charging FAQ answer (EN and MK) no longer claims "a wallbox can be added later for faster charging". The PDF lists AC charging only, capped by the on-board charger at 2 kW (L6) / 3.3 kW (L7), so a wallbox can't speed up the L6. The answer now states those limits and the resulting ~4 h / ~4.5 h full-charge times.
+- **Chatbot** (`app/api/chat/route.js`): the system prompt now includes the shared specs, the drive modes, and a summary of which versions have which equipment. For example, the base Alumi and base Alumi Elite have no touchscreen, CarPlay, or air conditioning, so the AI won't promise those for every version.
+- **`docs/linktour-specs.md`:** cites the PDF as the primary source, notes where the top speeds come from, and adds the full per-trim equipment table. That table marks the rows the PDF lists per model rather than per trim (roof rack, key type).
+
+**Bug found and fixed:** on a 390px phone, the page scrolled sideways by about 300px in both languages. The table's sr-only labels are absolutely positioned, and with no positioned ancestor they escaped the table's `overflow-x-auto` box and widened the page. Fixed by adding `relative` to the scroll wrapper. Horizontal overflow is back to 0, and the table still scrolls inside its own box.
+
+**Verified:**
+- `npm run lint` and `npm run build` pass.
+- On `next start` in EN and MK: 16 spec rows in the showcase and comparison, 14 standard items, and the rendered trim matrix matches the PDF cell for cell (`– ● ● – ●`, …, `Fabric ×4 / Leather`). The new FAQ text shows in both languages, with no page errors.
+- Screenshots checked at desktop and 390px.
+
+---
+
+## 2026-09-30 — Dropdown contrast fix (white-on-white options)
+
+**Prompt:** Fix the contrast bug where `<select>` options in the booking modals appear as white text on a white background. Give options an explicit dark background and light text, apply it to every select on the site, log the fix, and verify `npm run build` passes.
+
+**Cause:** every select used the shared `inputClass`, which has `bg-transparent text-slate-50`. The option list that opens is drawn by the operating system, not the page, so it uses the system's light theme. The options inherited the near-white text but not the dark page behind the field, which gave white-on-white.
+
+**Output:**
+- `components/FormControls.jsx`:
+  - New shared `selectClass` = `inputClass` plus `[&>option]:bg-obsidian [&>option]:text-slate-100`, as the prompt suggested. The option styles are defined once instead of being repeated on every `<option>`.
+  - Added `[color-scheme:dark]` to `inputClass`, so the browser also draws its own parts of form fields in dark mode: select popups, the date field's calendar popup and icon (previously a dark icon on a dark field), and autofill.
+- `components/BookingModal.jsx`: all 5 selects now use `selectClass`. Those are model preference, time slot, and customer type in the test-drive form, and model interest and intent in the waitlist/reserve form. These are the only selects on the site. "Color preference" is a free-text input, so it's covered by the `color-scheme` change rather than option styling.
+- Verified: `npm run lint` and `npm run build` pass. On `next start`, every option in all 5 selects computes to background `rgb(8, 12, 16)` (#080c10) with slate-100 text, and every select plus the date input computes `color-scheme: dark`. Headless Chromium can't screenshot the OS-drawn popup itself, so the check uses computed styles.
+
+---
+
+## 2026-09-30 — Real L7 photos
+
+**Prompt:** Check inside `public/images/L7` and use the photos for the L7 model.
+
+**What's there:** nine images. The `71.png`/`72.jpg` noted earlier are gone.
+- **Exterior (`img-5-1`–`img-5-4`):** driving shot, front three-quarter, panoramic roof at night, headlight detail. These are the same renders as the L6's exterior shots; Linktour uses one body for both models. `img-5-2` is byte-for-byte identical to `L6/img-5-12.jpg`, and the other three are separate exports of the same images.
+- **Interior (`img-17-1`, `img-18-1`, `-2`, `-3`, `-5`):** different from the L6's. They show a two-tone cabin with perforated leather seats and the 10.25" screen, which the spec sheet lists only on the top Alumi Elite+ version. A comment in `lib/models.js` records this.
+
+**Output:**
+- `lib/models.js`: the L7 gallery now uses all nine photos, replacing four paths that never existed and always showed the "photo coming soon" fallback. It leads with the driving shot, then the leather seats and dashboard, so the L7 tab looks different from the L6 at a glance. The shared front three-quarter shot comes later.
+- `components/Hero.jsx`: the L7 hero tab uses the driving shot with `objectPosition: 75% 50%`, so the car isn't clipped in the 4:3 frame. The hero L6/L7 tabs now show different photos.
+- `components/ModelShowcase.jsx`: nine thumbnails don't fit one row, especially at phone width, so the thumbnail strip is now a wrapping grid (`repeat(auto-fill, minmax(4.5rem, 1fr))`). The L6's six still sit in one row on desktop; the L7 wraps to 6 + 3, and phones show 4 per row.
+- Verified: `npm run lint` and `npm run build` pass. On `next start`, all 9 L7 photos load with no fallbacks and no image errors. The L6 still shows 6 thumbnails in one row, and `/mk` at 390px has no horizontal overflow. Hero, gallery, and mobile screenshots checked.
+
+---
+
+## 2026-09-30 — Test-drive date limited to today through 3 months ahead
+
+**Prompt:** Restrict the Book Test Drive date picker (`components/BookingModal.jsx`, `components/FormControls.jsx`) to dates between today and 3 months from now. Set `min` and `max` dynamically as `YYYY-MM-DD`, block past and far-future dates, and show a clear error before submitting if an out-of-range date is typed manually. Log this change and verify `npm run build` passes.
+
+**Output:**
+- **`components/FormControls.jsx` — new shared date helpers:**
+  - `toLocalISODate()` formats in the visitor's local time zone. This replaces the old `todayISODate()`, which used `toISOString()`, the UTC date: in North Macedonia (UTC+1/+2) that was still yesterday until 1–2 am, so `min` let people book a date that had already passed.
+  - `getDateRange(months)` returns `{ min, max }`, with the end date clamped at month-end: 30 Nov → 28 Feb, and 30 Nov 2027 → 29 Feb 2028 in the leap year.
+  - `checkDateInRange()` returns `"past"`, `"tooLate"`, or `"invalid"`, or `null` when the date is in range.
+  - `formatDisplayDate()` shows dates as DD.MM.YYYY. That's the local convention and is unambiguous in English, and it avoids `Intl`, whose Macedonian data many browsers lack (the same issue as the earlier hydration bug).
+  - `FieldError` renders the inline error with `role="alert"`, and `invalidInputClass` swaps the silver border for red rather than stacking two border colours.
+- **`components/BookingModal.jsx` (`TestDriveForm`):**
+  - The date input gets `min` (today) and `max` (today + 3 months), computed once when the form opens (`BOOKING_WINDOW_MONTHS = 3`), so the native calendar greys out everything outside the window.
+  - A hint under the field says "Available from {min} to {max}".
+  - **Typed dates are checked on blur.** A past, too-late, or incomplete/impossible date (`validity.badInput`) shows a specific message, and the field turns red with `aria-invalid` and `aria-describedby`.
+  - **Browser validation stays in sync.** `setCustomValidity()` mirrors the message into the browser's own validation, so a submit is blocked even before blur. `onInvalid` swaps the browser's tooltip, which would be in the browser's language, for the inline message in the site's language. An empty required date keeps the browser's normal "please fill in" message.
+  - Once an error is showing, it updates live as the user corrects the date. `handleSubmit` re-checks the range before inserting.
+- **Dictionaries (EN and MK):** `booking.dateHint` and `booking.dateErrors.{past, tooLate, invalid}`, with `{min}`/`{max}` placeholders. 253 keys, in sync.
+
+**Verified:**
+- `npm run lint` and `npm run build` pass.
+- Unit check of the helpers: month-end and leap-year clamping, and the boundaries. Today and exactly +3 months are allowed; one day either side isn't.
+- Playwright on `next start` in EN and MK, with Supabase requests mocked so no rows were written:
+  - `min`/`max` render correctly.
+  - Typing a past date, a date 1 year ahead, and max + 1 day each shows the right localized error on blur, and submit is blocked with 0 insert requests.
+  - A partly typed date shows the "complete, valid date" message.
+  - Correcting to a valid date clears the error live, and a valid submit sends exactly 1 insert and shows the success banner.
+  - No page errors.
+
+---
+
+## 2026-09-30 — Macedonian: "Досег" → "Домет" for driving range
+
+**Prompt:** In the Macedonian version of the vehicle specs, change "Досег" to "Домет" for driving range.
+
+**Output:** `dictionaries/mk.json` — the spec label `models.specLabels.range` is now "Домет". For consistent terminology, the other five places using "досег" to mean driving range were changed too, with the right grammatical forms:
+- L7 tagline: "Поголем домет, повеќе перформанси."
+- FAQ category: "Полнење и домет"
+- FAQ question: "Колкав е дометот со едно полнење?"
+- FAQ answer: "Реалниот домет зависи од…"
+- Chatbot comparison reply: "домет од 120 km" / "домет од 180 km"
+
+Verified: no "досег" left in the Macedonian dictionary or in the rendered `/mk` page. `npm run lint` and `npm run build` pass.
+
+---
+
+## 2026-09-30 — Custom calendar replaces Chrome's native date picker
+
+**Prompt:** Fix the Book Test Drive date picker so users can't see or select past years in the calendar dropdown. Set `min` (today) and `max` (today + 3 months) on the date input, or, if a custom calendar is used, pass equivalent min/max props so the year list only shows valid options. Follow-up from the user: "it is still showing past years, I am using Chrome."
+
+**Finding:** `min`/`max` were already on the native `<input type="date">` from the previous step, and the running `next dev` server on port 3000 was serving them (checked by opening the form there: `min=2026-09-30`, `max=2026-12-30`). Chrome's own calendar pop-up only greys out out-of-range days. Its month/year list still lets you jump to any year, and pages can't restrict or style that pop-up. The only way to hide past years is to not use the native picker.
+
+**Output:**
+- New `components/DatePicker.jsx`, a dependency-free calendar built for the 3-month window:
+  - The trigger looks like the other fields and shows the date as DD.MM.YYYY or a placeholder. It opens a pop-up with one month at a time and **no year list**.
+  - Previous/next arrows only move between the months that contain bookable days (this month plus the next 3) and disable at either end. Every day before today or after the max is disabled and greyed. Today has a teal ring.
+  - Weeks start on Monday. Month and weekday names come from the dictionaries, not `Intl`, so Macedonian renders correctly in every browser.
+  - **Keyboard** (grid pattern with a roving tabindex): arrows move by day/week, Home/End go to week start/end, and PageUp/PageDown move by month, all clamped to the range. Enter/Space selects.
+  - **Closing:** Escape closes only the calendar and returns focus to the trigger; its propagation is stopped so the booking modal's own Escape handler doesn't close the whole form. Clicking outside closes it too.
+  - **Screen readers:** `role="dialog"` with the month heading as its label (`aria-live`), each day's full weekday and date as its `aria-label`, `aria-pressed` for the selected day, and `aria-current="date"` for today.
+- `components/BookingModal.jsx`:
+  - The date field uses `DatePicker`, inside a `div` with `<label htmlFor>` rather than a wrapping `<label>`, which would forward clicks on the calendar's own buttons to the trigger.
+  - The native `required` can't cover a button, so submitting with no date shows "Please choose a date for your test drive." inline and moves focus to the calendar button.
+  - The range check still runs on selection and on submit as a safety net.
+  - The old native-input handlers (`onBlur`/`onInvalid`/`setCustomValidity`/`badInput`) are removed, since nothing can be typed any more.
+- `components/FormControls.jsx`: `checkDateInRange` drops the now-unused `badInput` option.
+- Dictionaries (EN and MK): `booking.calendar` (placeholder, prev/next labels, 12 month names, short and long weekday names) and `booking.dateErrors.required`. 283 keys, in sync.
+
+**Verified:**
+- `npm run lint` (clean) and `npm run build` pass.
+- Playwright on `next start`, 22/22 checks, with Supabase mocked:
+  - No native date input remains, and an empty date blocks submit with the message and focus on the calendar button.
+  - The calendar opens on the current month focused on today, with Previous disabled and every past day disabled.
+  - Browsing covers exactly September → October → November → December 2026, then Next is disabled, and the last enabled day equals the computed max (30.12.2026).
+  - PageDown/PageUp stop at max and at today.
+  - Escape closes the calendar but not the booking form, and returns focus. Enter selects, and the trigger shows DD.MM.YYYY. Clicking outside closes it.
+  - A valid submit sends `preferred_date: "2026-10-08"` (ISO, unchanged format for the database).
+  - Macedonian month/weekday names show, and the pop-up fits a 390px phone with no page overflow. No page errors.
+
+---
+
+## 2026-09-30 — Hero: three call-to-action buttons
+
+**Prompt:** In `components/Hero.jsx`, show three CTAs instead of two:
+1. "Book Test Drive": primary teal, opens the test-drive modal.
+2. "Check Availability": new secondary button; opens the inquiry/waitlist modal or handles stock availability inquiries.
+3. "Reserve / Pre-Order": outline style, opens the pre-order modal.
+
+Use a responsive `flex-col sm:flex-row flex-wrap gap-3` container, and add "Check Availability" / "Провери достапност" to the dictionaries.
+
+**Output:**
+- **`components/Hero.jsx`** — the three buttons replace the previous pair.
+  - "Explore L6 & L7", the old outline link to `#models`, is removed. The prompt's three buttons take that slot, and the navbar's "Models" link still reaches the section.
+  - **Styling:**
+    - Book Test Drive keeps the teal fill and calendar icon.
+    - Check Availability is a teal-outline secondary button with a `PackageSearch` icon.
+    - Reserve / Pre-Order uses the silver outline style the old link had.
+  - **Prefilled model:** each button pre-fills the model currently selected in the hero's L6/L7 photo tabs.
+  - **Layout:** `flex flex-col flex-wrap gap-3 sm:flex-row` as requested, plus `sm:grow` and `whitespace-nowrap` on the buttons. The hero's text column is only ~530px wide on desktop, so three buttons can't share one row, especially with the longer Macedonian labels. Growing the buttons makes the wrap a tidy block (two buttons, then Reserve full width) instead of a ragged row. Phones stack all three full-width.
+  - The unused `locale` prop and `Link`/`handleSectionLinkClick` imports are removed, and `app/[locale]/page.js` is updated to match.
+- **`components/BookingModal.jsx`** — new `availability` modal type.
+  - It reuses `WaitlistForm` with an `availability` flag: its own title ("Check Availability" / "Проверете достапност") and `PackageSearch` icon, an intro line, submit label, and success message. The waitlist-vs-deposit choice is hidden.
+  - Requests are stored in the existing `waitlist` table with `intent_type: "Waitlist"`, so no database change was needed. In Supabase they appear alongside waitlist sign-ups.
+  - The existing waitlist and reserve modals are unchanged.
+- **Dictionaries (EN and MK):**
+  - Added: `common.checkAvailability` ("Check Availability" / "Провери достапност"), `booking.titles.availability`, `booking.availabilityIntro`, and `booking.availabilitySuccess`.
+  - Removed: the unused `hero.explore`.
+  - 286 keys, in sync.
+
+**Verified:**
+- `npm run lint` and `npm run build` pass.
+- Playwright on `next start` in EN and MK, with Supabase mocked:
+  - The three CTAs render in order.
+  - With L7 selected in the hero tabs, each button opens the right modal pre-filled with L7.
+  - Check Availability hides the intent choice, and its submit sends a `waitlist` row with `intent_type: "Waitlist"` and `model_interest: "L7"`, then shows the availability success message.
+  - Reserve keeps the "Pre-Order Deposit" intent. No page errors.
+- Screenshots at 1280px (EN/MK: two buttons plus full-width Reserve), 700px (MK), and 390px (three stacked full-width buttons). No horizontal overflow at any width.
+
+---
+
+## 2026-09-30 — Removed the "Reserve in {colour}" button from the colours section
+
+**Prompt:** Remove the teal "Reserve in [Color Name]" button under the colour swatches. Keep the swatches fully working, clean up unused handlers and dictionary keys, log the update, and verify `npm run build` passes.
+
+**Output:**
+- `components/ColorShowcase.jsx` (the colours section; the prompt mentioned `ModelShowcase.jsx`, but the button lived here): removed the button and everything only it used: the `Users` icon import, `useBookingModal`, and `openModal`. The swatches, crossfading images, `aria-pressed`, and the `aria-live` colour name are unchanged.
+- `components/BookingModal.jsx`: the waitlist/reserve form no longer pre-fills `color_preference` from `prefill.color`. That pre-fill existed only for this button and nothing else passes a colour. The colour field starts empty again and still accepts free text.
+- `lib/models.js`: updated the `colors` comment, which said the reserve form stored the colour name.
+- Dictionaries (EN and MK): removed `colors.reserveIn`. 285 keys, in sync.
+
+**Verified:** `npm run lint` and `npm run build` pass. No references to `reserveIn` or `prefill.color` remain. On `next start` in EN and MK, the colours section contains only the four swatch buttons. Clicking each swatch shows exactly its own image (`img-11-41`/`-21`/`-11`/`-31`), with the matching title and pressed state. No page errors.
+
+---
+
+## 2026-09-30 — "Check Availability": city/region field with "Use current location"
+
+**Prompt:** Add a location lookup to the Check Availability modal:
+- A "City or Region" text input (placeholder e.g. "Skopje, Bitola, Ohrid") with a "Use current location" control using `navigator.geolocation`, handling the loading ("Detecting...") and declined/unavailable states.
+- Place it cleanly beside or above the model/colour options, and make the submit button include the city, defaulting to regional stock when empty.
+- EN/MK strings: "City or Region" / "Град или регион", "Enter your city" / "Внесете го вашиот град", "Use current location" / "Користи ја моменталната локација", "Detecting..." / "Се детектира...".
+
+Log it and verify `npm run build` passes.
+
+**Found first: the Supabase project was paused.** `auravia-project` showed `INACTIVE` (free-tier projects pause after about a week without activity), so every form on the site was failing. With the user's go-ahead ("Restore + add column"), it was restored and is `ACTIVE_HEALTHY` again. It had already started coming back up after the first queries.
+
+**Database** (migration `add_city_to_waitlist`): new nullable `city text` column on `public.waitlist`, with a `char_length(city) <= 100` check so the public form can't store arbitrarily long strings, plus a column comment. `anon` already had table-level INSERT, which covers the new column, and still has no SELECT.
+
+**Output:**
+- **New `lib/cities.js`:** 30 North Macedonian towns with English/Macedonian names and approximate coordinates, plus `nearestCity(lat, lon)` (haversine).
+  - **No reverse-geocoding service.** The browser only returns coordinates, and the usual way to get a city name is to send them to a third party (Nominatim, Google, etc.). Instead the nearest town is picked on the visitor's own device: no external request, no API key, and no location data leaves the browser.
+  - More than 40 km from every listed town is treated as "outside North Macedonia". Sofia, Thessaloniki, and Pristina correctly return no match; Mavrovo maps to Gostivar.
+- **New `components/CityField.jsx`:**
+  - Labelled text input with `autocomplete="address-level2"` and a "Use current location" button under it, with a `LocateFixed` icon that becomes a spinner plus "Detecting..." and is disabled while locating.
+  - Uses `getCurrentPosition` (city-level accuracy, 10 s timeout, accepts a fix cached up to 10 minutes). On success it fills the town name in the page's language and shows "Location found: {city}".
+  - **Friendly fallbacks, never a blocked form:** separate messages for permission declined, position unavailable or timed out, unsupported browser or insecure context, and outside North Macedonia.
+  - When the field is empty, a hint reads "Leave blank to check stock across North Macedonia."
+  - Messages sit in a `role="status"` live region linked to the input.
+- **`components/BookingModal.jsx`:**
+  - The availability form shows the city field above the model/colour row.
+  - The submit label becomes "Check availability in {city}" / "Провери достапност во {city}" once a city is entered, and stays "Check Availability" when empty.
+  - **What gets stored:** only availability requests send `city`. `canonicalCity()` stores a recognised town under its English name whether typed in English or Macedonian, any case ("охрид" → "Ohrid"), keeps other text as typed, and sends `null` for empty.
+  - The waitlist and reserve inserts are unchanged; they send no `city` key.
+  - `BookingModal` now receives `locale` from `app/[locale]/layout.js` so detected towns show in the right language.
+- **Dictionaries (EN and MK):** new `booking.availabilityLocation` block with label, placeholder, use-location, detecting, found, empty hint, four fallback messages, and `submitIn`, using the requested wording. 296 keys, in sync.
+
+**Verified:**
+- `npm run lint` and `npm run build` pass.
+- Unit check of `nearestCity` (cities inside and outside the country).
+- Playwright on `next start`, 25/25 checks, with Supabase mocked and geolocation emulated:
+  - The field sits above the model select, and the empty hint and default label show.
+  - With a Bitola fix: "Detecting..." shows with the button disabled, then "Bitola" is filled in, the found message appears, and the label reads "Check availability in Bitola"; the insert has `city: "Bitola"`.
+  - **Fallbacks:** declined shows the message and leaves the button usable again; outside the country (Sofia) shows its message and fills nothing.
+  - **Macedonian:** detection gives "Скопје" and the MK label, and the insert stores "Skopje"; typed "охрид" becomes "Ohrid", an unknown place is kept as typed, and empty becomes `null`.
+  - The waitlist and reserve forms have no city field or key, and there's no overflow at 390px.
+- **Live database** (anon key, same as the site): an insert with a city returns 201, a 101+ character city is rejected by the check (400), an insert without a city still returns 201, and anon SELECT is still denied. The test rows were confirmed (`Bitola` / `null`) and then deleted.
+
+**Note:** the free-tier project will pause again after about a week without traffic, which silently breaks every form. Worth upgrading the plan or adding a periodic keep-alive before launch.
+
+---
+
+## 2026-09-30 — Fuel calculator: live Makpetrol prices and a Petrol/Diesel toggle
+
+**Prompt:**
+- Add `app/api/fuel-prices/route.js` that scrapes Makpetrol with `fetch` + `cheerio` for "Ultra 95+" (petrol) and "Ultra Diesel" (diesel), converts MKD → € by dividing by 61.5, and returns `{ petrol, diesel }`.
+- In the calculator, fetch it on mount with a fallback (€1.30), add a Petrol/Diesel toggle under "Adjust cost assumptions", make the consumption/price labels follow the fuel, and auto-fill the price with that fuel's live price when toggling.
+- Translate "Fuel Type", "Petrol (Ultra 95+)", and "Diesel (Ultra Diesel)".
+
+**Findings while inspecting Makpetrol:**
+- The homepage (`makpetrol.com.mk/`) doesn't contain fuel prices. "Моментални цени на горивата" there is just app-feature copy, and `pricelistmakpetrol.html` is the in-store shop product list.
+- The fuel prices are on the price-history page (`/историјат-на-промена-на-цени/`): a server-rendered wpDataTables table with one row per day since 01.10.2024 (730 rows) and columns Ultra 95+, Ultra 100, Ultra Diesel Green Power, Ultra Diesel Bio Power, LPG, CNG, EL-1, in MKD with decimal commas.
+- There's no plain "Ultra Diesel" column, so **Ultra Diesel Green Power**, Makpetrol's standard diesel, is used. Bio Power is the other column.
+- Today (30.09.2026): Ultra 95+ = 100.00 MKD and Ultra Diesel Green Power = 100.00 MKD, both €1.63/L at 61.5 MKD/€.
+
+**Output:**
+- `cheerio` 1.2.0 added to dependencies (`npm install cheerio`).
+- **New `lib/fuelPrices.js`:** `parsePrices(html)` loads the page with cheerio.
+  - It finds the table by its column headers rather than its element id, reads the columns by header name, parses "100,00" → 100 with a 30–300 MKD sanity range, and returns the newest complete row by date rather than trusting row order.
+  - It throws a clear error if the page changes shape. It lives in `lib/` because route files may only export HTTP handlers and config.
+- **New `app/api/fuel-prices/route.js`** (GET, Node runtime):
+  - Fetches the page with a 10 s timeout and returns `{ petrol, diesel, currency: "EUR", date, mkd, mkdPerEur: 61.5, source }`, with prices rounded to cents.
+  - **Caching:** successful results are kept in memory for 6 hours, plus a CDN `Cache-Control: s-maxage=21600, stale-while-revalidate=86400`, so visitors don't each hit Makpetrol.
+  - **Failures:** if a refresh fails, the last good price is served. With none cached, it returns 502, which the client treats as "use the fallback". A route-level `revalidate` wasn't used, because in Next 16 that prerenders at build time and could bake in a failure.
+- **`components/ModelComparison.jsx` (`FuelSavingsCalculator`; there is no separate `FuelCalculator.jsx`):**
+  - Fetches `/api/fuel-prices` on mount, with an AbortController on unmount.
+  - The assumption state holds `fuelPrice: null` for "follow today's live price for the selected fuel", or a number once the visitor types their own. That means a price arriving late never overwrites what the visitor typed.
+  - **Fuel toggle:** "Fuel Type" pill toggle built from visually-hidden native radio inputs, giving keyboard arrows and screen-reader semantics for free, with a focus ring via `has-[:focus-visible]`.
+  - **Labels follow the fuel:** "Petrol/Diesel car consumption (L/100km)", "Petrol/Diesel price (€/L)", and the results line "vs. €X petrol / diesel / €Y electricity".
+  - **Switching fuel** fills the price field with that fuel's live price and drops any typed value.
+  - **Price note** under the field: "Loading today's Makpetrol price…", then "Makpetrol pump price on 30.09.2026: 100.00 MKD/L ÷ 61.5", or "Live prices are unavailable, so an estimate of €1.30/L is used." After a manual edit, a "Use today's price (€1.63)" link restores the live value.
+- **Dictionaries (EN and MK):**
+  - Added: `fuelType`, `fuelTypes.petrol/diesel` (the requested wording: "Тип на гориво", "Бензин (Ultra 95+)", "Дизел (Ultra Diesel)"), `fuelNames`, `fuelConsumption`/`fuelPrice` per fuel, the price-note strings, and `decimalSeparator`.
+  - Updated: `vsLine` placeholders, the section description ("…switching from a petrol or diesel car…"), and the disclaimer, which now says fuel prices are Makpetrol's pump prices converted at 61.5 MKD/€.
+  - Removed: `petrolConsumption`/`petrolPrice`. 308 keys, in sync.
+
+**Verified:**
+- `npm run lint` and `npm run build` pass; `/api/fuel-prices` is a dynamic route.
+- The parser unit-tested against the saved live page gives 2026-09-30, 100/100 MKD → €1.63/€1.63, and a changed page throws "Price table not found".
+- The live route against Makpetrol returns real prices and the cache header.
+- Playwright on `next start`, with mocked distinct prices (petrol €1.63, diesel €1.55) because today's real prices are identical:
+  - Petrol is the default with the live price and the source note.
+  - Toggling to diesel switches labels, price (1.55), note, results line, and savings (€115 → €109/month; math checked by hand).
+  - A typed price is kept and the "Use today's price" link restores it; switching fuel re-fills the live price; keyboard arrows switch fuel.
+  - With the route failing: 1.3 and the fallback message. With a slow route: the loading note, then the live price.
+  - MK labels and note (100,00 ден/L ÷ 61,5) against the real route. No page errors.
+
+**Caveats:**
+- Scraping depends on Makpetrol's page. If they rename the columns or restructure it, the route returns 502 (or keeps serving the last good price) and the calculator falls back to €1.30 until `lib/fuelPrices.js` is updated.
+- Makpetrol's terms of use for automated access weren't reviewed. The 6-hour cache keeps it to a handful of requests per day.

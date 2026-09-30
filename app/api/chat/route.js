@@ -1,4 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
+import enDictionary from "@/dictionaries/en.json";
+import mkDictionary from "@/dictionaries/mk.json";
+import { DEFAULT_LOCALE, hasLocale } from "@/lib/i18n";
 
 export const runtime = "nodejs";
 
@@ -9,6 +12,16 @@ About Auravia: Auravia Electric Mobility is a joint venture between AVC-SM CO., 
 The two models:
 - Linktour L6: registered as an L6e light quadricycle, built for tight city streets and everyday commuting. 7.2 kWh lithium iron phosphate (LFP) battery, full AC charge (0–100%) in about 4 hours at 2 kW, 45 km/h top speed, 120 km range (WMTC), 6 kW rated / 12 kW peak motor.
 - Linktour L7: registered as an L7e heavy quadricycle, with a larger battery, higher top speed, and longer range than the L6. 12.96 kWh LFP battery, full AC charge (0–100%) in about 4.5 hours at 3.3 kW, 90 km/h top speed, 180 km range (WMTC), 10 kW rated / 23 kW peak motor.
+
+Shared by both models: 1800 mm wheelbase, 1310/1300 mm front/rear track, 4.5 m turning circle, rear-wheel drive with a permanent magnet synchronous motor, AC charging only. Drive modes: L6 Normal; L7 Normal and Sport. Dimensions: L6 2685 × 1500 × 1555 mm, L7 2685 × 1500 × 1590 mm. Ground clearance: L6 140 mm, L7 130 mm. Max. permissible mass: L6 760 kg, L7 820 kg.
+
+Versions and equipment (Linktour trim names; which versions Auravia will offer is still being confirmed):
+- L6 comes as Alumi, Alumi Plus, and Alumi Pro. L7 comes as Alumi Elite and Alumi Elite+.
+- Standard on every version: glass canopy roof, frameless doors, LED daytime running and rear lights, 5-inch instrument cluster, 12V socket, adjustable driver and passenger seats, ABS with EBD, electric power steering, hill-start assist, regenerative braking, defrosting.
+- 10.25" touchscreen with CarPlay/Android Auto, Bluetooth, speakers, USB, and a rear view camera: Alumi Plus, Alumi Pro, Alumi Elite+ (not the base Alumi or base Alumi Elite).
+- Heating and air conditioning plus a 60 W USB-C port: Alumi Pro and Alumi Elite+ only; other versions have heating only.
+- Leather seats: Alumi Elite+ only; all others have fabric.
+- Smart key with keyless entry and push-button start, decorative roof rack, and smartphone app (remote lock, windows, pre-heating, car finder, charging alerts): L7 versions only. Remote vehicle status and remote temperature control: Alumi Elite+ only.
 
 Licensing in North Macedonia: no special license is needed, since a standard Category B (car) license covers both models. The L6 (L6e light quadricycle, max 45 km/h) can be driven with a Category AM (moped) or Category B license. The L7 (L7e heavy quadricycle) requires a Category B license.
 
@@ -24,63 +37,76 @@ Ground rules:
 - Point users toward the site's "Book Test Drive," "Waitlist," or "Ask a Specialist" actions rather than trying to complete a booking or collect personal details yourself in the chat.
 - If a question is unrelated to Auravia, Linktour, electric mobility, or the site itself, say that's outside what you can help with and redirect to what you do know.`;
 
+const LANGUAGE_INSTRUCTIONS = {
+  en: "Reply in English.",
+  mk: 'Reply in Macedonian, written in Cyrillic, even if the visitor writes in English. Refer to the site\'s buttons by their Macedonian labels: "Закажи тест-возење", "Листа на чекање", and "Прашајте специјалист".',
+};
+
+const systemPromptFor = (locale) => `${SYSTEM_PROMPT}\n- ${LANGUAGE_INSTRUCTIONS[locale]}`;
+
+// Reply text lives in dictionaries/*.json under chat.replies.<key>. Visitors may type in either
+// language on either locale, so each rule has English and Macedonian patterns. Cyrillic isn't a
+// \w character for \b, so Macedonian stems are anchored with a Unicode lookbehind instead —
+// otherwise e.g. "чин" (as in "чини", costs) would also match "начин" (way).
+const mkStems = (stems) => new RegExp(`(?<!\\p{L})(${stems.join("|")})`, "iu");
+
 const MOCK_RULES = [
   {
-    test: /(suspen|revok|revoc|\bbann?ed\b|driving ban)/i,
-    reply:
-      "The L6 can be driven with a Category AM or B license, and the L7 requires Category B. Whether a suspension, revocation, or driving ban also covers a given category depends on the terms of that decision, so we can't advise on it. Please check with the authority that issued it before driving.",
+    key: "suspension",
+    patterns: [/(suspen|revok|revoc|\bbann?ed\b|driving ban)/i, mkStems(["суспен", "одзем", "забран"])],
   },
   {
-    test: /(licen[cs]e|\bcategory\b|\bage\b|how old|years old)/i,
-    reply:
-      "No special license is needed: a standard Category B (car) license covers both models. The L6 (L6e light quadricycle, max 45 km/h) can also be driven with a Category AM (moped) license, while the L7 (L7e heavy quadricycle) requires Category B. For minimum age requirements, our specialist team can confirm what applies to you.",
+    key: "license",
+    patterns: [
+      /(licen[cs]e|\bcategory\b|\bage\b|how old|years old)/i,
+      mkStems(["дозвол", "категориј", "возраст", "колку години", "полнолет"]),
+    ],
+  },
+  { key: "charging", patterns: [/charg/i, mkStems(["полн"])] },
+  {
+    key: "compare",
+    patterns: [
+      /(l6|l7|compare|difference|quadricycle|speed limit)/i,
+      mkStems(["спореди", "споредба", "разлик", "квадрицикл"]),
+    ],
   },
   {
-    test: /charg/i,
-    reply:
-      "Both the L6 and L7 charge from a standard household wall outlet — no dedicated wallbox required. The L6's 7.2 kWh battery charges fully (0–100%) in about 4 hours at 2 kW, and the L7's 12.96 kWh battery in about 4.5 hours at 3.3 kW.",
+    key: "service",
+    patterns: [
+      /(warrant|servic|repair|battery|maintenance|parts)/i,
+      mkStems(["гаранц", "сервис", "поправ", "батериј", "одржув", "делови"]),
+    ],
+  },
+  { key: "testDrive", patterns: [/(test ?drive|book)/i, mkStems(["тест", "закаж"])] },
+  {
+    key: "pricing",
+    patterns: [
+      /(pric|cost|deposit|pre-?order|reserve|waitlist)/i,
+      mkStems(["цена", "цени", "чини", "трош", "депозит", "резерв", "претнарач", "листа на чекање"]),
+    ],
   },
   {
-    test: /(l6|l7|compare|difference|quadricycle|speed limit)/i,
-    reply:
-      "The L6 is an L6e light quadricycle built for tight city streets: 7.2 kWh battery, 45 km/h top speed, 120 km range, drivable with a Category AM or B license. The L7 is an L7e heavy quadricycle: 12.96 kWh battery, 90 km/h top speed, 180 km range, and requires a Category B license.",
-  },
-  {
-    test: /(warrant|servic|repair|battery|maintenance|parts)/i,
-    reply:
-      "AVC-SM, with 24+ years of experience in electric mobility and batteries, handles local warranty support, battery diagnostics, cell balancing, and repair in North Macedonia — backed by official Linktour parts.",
-  },
-  {
-    test: /(test ?drive|book)/i,
-    reply:
-      "You can book a test drive right from this site — use the \"Book Test Drive\" button in the menu or hero section, or the quick action below.",
-  },
-  {
-    test: /(pric|cost|deposit|pre-?order|reserve|waitlist)/i,
-    reply:
-      "Operating costs are low thanks to electric propulsion and compact design, but exact pricing is still being finalized. Join the waitlist or place a pre-order deposit and we'll follow up with introductory pricing as soon as it's confirmed.",
-  },
-  {
-    test: /(delivery|logistics|import|shipping|romania|china)/i,
-    reply:
-      "BetaSped, our logistics partner with 30+ years of freight-forwarding experience, handles import and customs — vehicles arrive in Macedonia through an established, professional supply chain.",
+    key: "logistics",
+    patterns: [
+      /(delivery|logistics|import|shipping|romania|china)/i,
+      mkStems(["испорак", "достав", "увоз", "логистик", "царин", "романиј", "кина"]),
+    ],
   },
 ];
 
-const FALLBACK_REPLY =
-  "I can help with charging, comparing the L6 and L7, local warranty and service, or booking a test drive — what would you like to know? For anything specific, our specialist team can help via the \"Ask a Specialist\" form.";
+const dictionaries = { en: enDictionary, mk: mkDictionary };
 
-function mockReply(userMessage) {
-  const rule = MOCK_RULES.find((entry) => entry.test.test(userMessage));
-  return rule ? rule.reply : FALLBACK_REPLY;
+function mockReply(userMessage, replies) {
+  const rule = MOCK_RULES.find((entry) => entry.patterns.some((re) => re.test(userMessage)));
+  return replies[rule ? rule.key : "fallback"];
 }
 
-async function callAnthropic(apiKey, messages) {
+async function callAnthropic(apiKey, messages, locale, fallbackReply) {
   const client = new Anthropic({ apiKey });
   const response = await client.messages.create({
     model: "claude-opus-5",
     max_tokens: 500,
-    system: SYSTEM_PROMPT,
+    system: systemPromptFor(locale),
     output_config: { effort: "low" },
     messages: messages.map((message) => ({
       role: message.role,
@@ -89,10 +115,10 @@ async function callAnthropic(apiKey, messages) {
   });
 
   const textBlock = response.content.find((block) => block.type === "text");
-  return textBlock?.text ?? FALLBACK_REPLY;
+  return textBlock?.text ?? fallbackReply;
 }
 
-async function callOpenAI(apiKey, messages) {
+async function callOpenAI(apiKey, messages, locale, fallbackReply) {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -103,7 +129,7 @@ async function callOpenAI(apiKey, messages) {
       model: "gpt-4o-mini",
       max_tokens: 500,
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: systemPromptFor(locale) },
         ...messages.map((message) => ({ role: message.role, content: message.content })),
       ],
     }),
@@ -114,12 +140,14 @@ async function callOpenAI(apiKey, messages) {
   }
 
   const data = await response.json();
-  return data.choices?.[0]?.message?.content ?? FALLBACK_REPLY;
+  return data.choices?.[0]?.message?.content ?? fallbackReply;
 }
 
 export async function POST(request) {
   const body = await request.json().catch(() => null);
   const messages = Array.isArray(body?.messages) ? body.messages : [];
+  const locale = hasLocale(body?.locale) ? body.locale : DEFAULT_LOCALE;
+  const { replies } = dictionaries[locale].chat;
   const lastUserMessage =
     [...messages].reverse().find((message) => message.role === "user")?.content ?? "";
 
@@ -128,21 +156,21 @@ export async function POST(request) {
 
   try {
     if (anthropicKey) {
-      const reply = await callAnthropic(anthropicKey, messages);
+      const reply = await callAnthropic(anthropicKey, messages, locale, replies.fallback);
       return Response.json({ reply, source: "anthropic" });
     }
     if (openaiKey) {
-      const reply = await callOpenAI(openaiKey, messages);
+      const reply = await callOpenAI(openaiKey, messages, locale, replies.fallback);
       return Response.json({ reply, source: "openai" });
     }
   } catch (error) {
     console.error("Chat API provider error:", error);
     return Response.json({
-      reply: mockReply(lastUserMessage),
+      reply: mockReply(lastUserMessage, replies),
       source: "mock",
       note: "AI provider unavailable — showing a canned response.",
     });
   }
 
-  return Response.json({ reply: mockReply(lastUserMessage), source: "mock" });
+  return Response.json({ reply: mockReply(lastUserMessage, replies), source: "mock" });
 }

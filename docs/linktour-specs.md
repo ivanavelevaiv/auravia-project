@@ -1,8 +1,9 @@
 # Linktour Alumi / Alumi Elite — published specs
 
-Sources (retrieved 2026-09-23):
-- https://www.linktour-auto.com/en/product/alumi — product overview
-- https://www.linktour-auto.com/en/product/detail — "Technical Specifications" comparison page
+Sources:
+- `TechnicalSpecifications(en).pdf` (project root) — Linktour's specification sheet; checked 2026-09-28, every figure below matches it
+- https://www.linktour-auto.com/en/product/alumi — product overview (retrieved 2026-09-23)
+- https://www.linktour-auto.com/en/product/detail — "Technical Specifications" comparison page (retrieved 2026-09-23; same data as the PDF)
 
 The pages never use "L6"/"L7". Mapping is inferred from EU quadricycle limits:
 - **Alumi → L6e** (light quadricycle: max 45 km/h, max 6 kW rated) — listed at exactly 45 km/h / 6 kW.
@@ -18,7 +19,7 @@ The pages never use "L6"/"L7". Mapping is inferred from EU quadricycle limits:
 | Min. ground clearance | 140 mm | 130 mm |
 | Turning circle | 4.5 m | 4.5 m |
 | Max. permissible mass | 760 kg | 820 kg |
-| Top speed | 45 km/h | 90 km/h (confirmed by the Auravia team 2026-09-23; not on Linktour's site) |
+| Top speed | 45 km/h (Linktour product page; not in the PDF) | 90 km/h (confirmed by the Auravia team 2026-09-23; not in the PDF or on Linktour's site) |
 | Range (WMTC) | 120 km | 180 km |
 | Battery | 7.2 kWh, lithium iron phosphate | 12.96 kWh, lithium iron phosphate |
 | Drive | RR (rear motor, rear-wheel drive) | RR (rear motor, rear-wheel drive) |
@@ -32,10 +33,37 @@ The pages never use "L6"/"L7". Mapping is inferred from EU quadricycle limits:
 | AC charge time (0–100%, room temp.) | 4 h | 4.5 h |
 | Tyres | 155/70 R13, steel rim | 155/65 R14, steel rim |
 
-Both: hill-start assist, creep ("peristaltic") starting, brake override, regenerative braking, ABS, EBD, column shift, electric power steering, three-point belts with driver belt warning.
+## Equipment
 
-Trims: Alumi / Alumi Plus / Alumi Pro; Alumi Elite / Alumi Elite+.
-Colours: Moon White, Sprout Green, Rock Grey, Starlit Black.
-Body: all-aluminium, 45% lighter body; CTB (cell-to-body) battery, +10% range.
+Trims: Alumi / Alumi Plus / Alumi Pro (L6); Alumi Elite / Alumi Elite+ (L7).
 
-**Not published on either page:** seat count, suspension type, DC fast charging (only AC is listed).
+**Standard on every trim:** hill-start assist, creep ("peristaltic") starting, brake override, regenerative braking, ABS, EBD, column shift, electric power steering, steel rims, frameless doors, glass canopy roof, LED daytime running lights, LED rear lights, integrated lamp, reading lamp, three-point belts with driver belt warning, 5-inch instrument cluster, 12V power supply, adjustable driver and passenger seats, defrosting & defogging, spare mechanical key.
+
+**Differs by trim** (● included, – not included):
+
+| Feature | Alumi | Plus | Pro | Elite | Elite+ |
+|---|---|---|---|---|---|
+| 10.25" central colour screen | – | ● | ● | – | ● |
+| CarPlay / Android Auto | – | ● | ● | – | ● |
+| Bluetooth music and phone | – | ● | ● | – | ● |
+| USB audio/video playback, USB port, speakers | – | ● | ● | – | ● |
+| Rear view camera | – | ● | ● | – | ● |
+| 60 W USB-C | – | – | ● | – | ● |
+| Single heating system | ● | ● | – | ● | – |
+| Heating and cooling A/C | – | – | ● | – | ● |
+| Two levels of heating | – | – | ● | – | ● |
+| External air circulation, face/foot vents | – | – | ● | ● | ● |
+| Fabric seats | ● | ● | ● | ● | – |
+| Leather seats | – | – | – | – | ● |
+| Roof rack (ornamental) — per model | – | – | – | ● | ● |
+| Remote key (basic) — per model | ● | ● | ● | – | – |
+| Intelligent remote key, keyless entry, one-button start, panic button — per model | – | – | – | ● | ● |
+| App: remote lock, window control, car finder, remote pre-heating, charging status warning | – | – | – | ● | ● |
+| App: remote vehicle status query, remote temperature control | – | – | – | – | ● |
+
+"Per model" rows are listed in the PDF with one column per model (Alumi / Alumi Elite), not per trim.
+
+Colours (product page): Moon White, Sprout Green, Rock Grey, Starlit Black.
+Body (product page): all-aluminium, 45% lighter body; CTB (cell-to-body) battery, +10% range.
+
+**Not published in any source:** seat count, suspension type, DC fast charging (only AC is listed), top speed (see table note).

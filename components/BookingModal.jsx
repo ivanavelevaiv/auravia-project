@@ -2,29 +2,56 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { CalendarCheck, Users, X } from "lucide-react";
+import { CalendarCheck, PackageSearch, Users, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { useBookingModal } from "@/lib/bookingModalContext";
-import { StatusBanner, SubmitButton, inputClass, labelClass } from "@/components/FormControls";
+import {
+  FieldError,
+  StatusBanner,
+  SubmitButton,
+  checkDateInRange,
+  formatDisplayDate,
+  getDateRange,
+  inputClass,
+  labelClass,
+  selectClass,
+} from "@/components/FormControls";
+import DatePicker from "@/components/DatePicker";
+import CityField, { canonicalCity } from "@/components/CityField";
+import { format } from "@/lib/i18n";
 
+// Option values are what gets stored in Supabase, so they stay in English regardless of
+// locale; only the visible labels come from the dictionary.
 const TIME_SLOTS = [
-  "Morning (9:00 – 12:00)",
-  "Afternoon (12:00 – 15:00)",
-  "Late Afternoon (15:00 – 18:00)",
+  { value: "Morning (9:00 – 12:00)", key: "morning" },
+  { value: "Afternoon (12:00 – 15:00)", key: "afternoon" },
+  { value: "Late Afternoon (15:00 – 18:00)", key: "lateAfternoon" },
 ];
 
-function todayISODate() {
-  return new Date().toISOString().split("T")[0];
-}
+const CUSTOMER_TYPES = [
+  { value: "Private", key: "private" },
+  { value: "Young Driver", key: "youngDriver" },
+  { value: "Business/Fleet", key: "business" },
+];
 
-function TestDriveForm({ prefill, onDone }) {
+// Test drives can be booked from today up to this many months ahead.
+const BOOKING_WINDOW_MONTHS = 3;
+
+function TestDriveForm({ prefill, onDone, dict, common }) {
+  // Fixed when the form opens, in the visitor's local time zone.
+  const [dateRange] = useState(() => getDateRange(BOOKING_WINDOW_MONTHS));
+  const [dateError, setDateError] = useState("");
+  const dateId = useId();
+  const dateHintId = useId();
+  const dateErrorId = useId();
+  const dateTriggerRef = useRef(null);
   const [form, setForm] = useState({
     full_name: "",
     email: "",
     phone: "",
     model_preference: prefill.model === "L6" || prefill.model === "L7" ? prefill.model : "Both",
     preferred_date: "",
-    preferred_time_slot: TIME_SLOTS[0],
+    preferred_time_slot: TIME_SLOTS[0].value,
     customer_type: "Private",
   });
   const [status, setStatus] = useState("idle");
@@ -32,8 +59,29 @@ function TestDriveForm({ prefill, onDone }) {
 
   const update = (key) => (event) => setForm((prev) => ({ ...prev, [key]: event.target.value }));
 
+  const displayRange = {
+    min: formatDisplayDate(dateRange.min),
+    max: formatDisplayDate(dateRange.max),
+  };
+
+  // The calendar only offers days inside the range, so this is a safety net.
+  const handleDateChange = (iso) => {
+    setForm((prev) => ({ ...prev, preferred_date: iso }));
+    const problem = checkDateInRange(iso, dateRange);
+    setDateError(problem ? format(dict.dateErrors[problem], displayRange) : "");
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
+    // The date is a button-driven calendar, not a native input, so `required` can't cover it.
+    const problem = form.preferred_date
+      ? checkDateInRange(form.preferred_date, dateRange)
+      : "required";
+    if (problem) {
+      setDateError(format(dict.dateErrors[problem], displayRange));
+      dateTriggerRef.current?.focus();
+      return;
+    }
     setStatus("submitting");
     setErrorMessage("");
 
@@ -41,7 +89,7 @@ function TestDriveForm({ prefill, onDone }) {
 
     if (error) {
       setStatus("error");
-      setErrorMessage("Something went wrong — please try again in a moment.");
+      setErrorMessage(common.genericError);
       return;
     }
     setStatus("success");
@@ -52,14 +100,14 @@ function TestDriveForm({ prefill, onDone }) {
       <div className="flex flex-col gap-4">
         <StatusBanner
           status="success"
-          successMessage="You're booked! We'll confirm your test drive by email or phone shortly."
+          successMessage={dict.testDriveSuccess}
         />
         <button
           type="button"
           onClick={onDone}
           className="inline-flex w-full items-center justify-center rounded-full border border-silver/40 px-6 py-3 text-sm font-medium text-slate-100 transition-colors hover:border-teal hover:text-teal"
         >
-          Done
+          {common.done}
         </button>
       </div>
     );
@@ -70,31 +118,31 @@ function TestDriveForm({ prefill, onDone }) {
       <StatusBanner status={status} errorMessage={errorMessage} />
 
       <label className={labelClass}>
-        Full name
+        {common.fullName}
         <input
           required
           type="text"
           value={form.full_name}
           onChange={update("full_name")}
           className={inputClass}
-          placeholder="Jane Petrovska"
+          placeholder={common.namePlaceholder}
         />
       </label>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className={labelClass}>
-          Email
+          {common.email}
           <input
             required
             type="email"
             value={form.email}
             onChange={update("email")}
             className={inputClass}
-            placeholder="jane@example.com"
+            placeholder={common.emailPlaceholder}
           />
         </label>
         <label className={labelClass}>
-          Phone
+          {common.phone}
           <input
             required
             type="tel"
@@ -107,42 +155,54 @@ function TestDriveForm({ prefill, onDone }) {
       </div>
 
       <label className={labelClass}>
-        Model preference
+        {dict.modelPreference}
         <select
           required
           value={form.model_preference}
           onChange={update("model_preference")}
-          className={inputClass}
+          className={selectClass}
         >
           <option value="L6">Linktour L6</option>
           <option value="L7">Linktour L7</option>
-          <option value="Both">Both — not sure yet</option>
+          <option value="Both">{dict.modelBoth}</option>
         </select>
       </label>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className={labelClass}>
-          Preferred date
-          <input
-            required
-            type="date"
-            min={todayISODate()}
+        {/* A div, not a <label> wrapper: the calendar has its own buttons, and a wrapping label
+            would forward clicks on them to the trigger. */}
+        <div className={labelClass}>
+          <label htmlFor={dateId}>{dict.preferredDate}</label>
+          <DatePicker
+            ref={dateTriggerRef}
+            id={dateId}
             value={form.preferred_date}
-            onChange={update("preferred_date")}
-            className={inputClass}
+            onChange={handleDateChange}
+            min={dateRange.min}
+            max={dateRange.max}
+            labels={dict.calendar}
+            invalid={Boolean(dateError)}
+            describedBy={dateError ? dateErrorId : dateHintId}
           />
-        </label>
+          {dateError ? (
+            <FieldError id={dateErrorId}>{dateError}</FieldError>
+          ) : (
+            <span id={dateHintId} className="text-xs text-silver/70">
+              {format(dict.dateHint, displayRange)}
+            </span>
+          )}
+        </div>
         <label className={labelClass}>
-          Time slot
+          {dict.timeSlot}
           <select
             required
             value={form.preferred_time_slot}
             onChange={update("preferred_time_slot")}
-            className={inputClass}
+            className={selectClass}
           >
             {TIME_SLOTS.map((slot) => (
-              <option key={slot} value={slot}>
-                {slot}
+              <option key={slot.value} value={slot.value}>
+                {dict.timeSlots[slot.key]}
               </option>
             ))}
           </select>
@@ -150,25 +210,31 @@ function TestDriveForm({ prefill, onDone }) {
       </div>
 
       <label className={labelClass}>
-        Customer type
+        {dict.customerType}
         <select
           required
           value={form.customer_type}
           onChange={update("customer_type")}
-          className={inputClass}
+          className={selectClass}
         >
-          <option value="Private">Private buyer</option>
-          <option value="Young Driver">Young driver / first car</option>
-          <option value="Business/Fleet">Business / fleet</option>
+          {CUSTOMER_TYPES.map((type) => (
+            <option key={type.value} value={type.value}>
+              {dict.customerTypes[type.key]}
+            </option>
+          ))}
         </select>
       </label>
 
-      <SubmitButton status={status}>Book Test Drive</SubmitButton>
+      <SubmitButton status={status} submittingLabel={common.submitting}>
+        {common.bookTestDrive}
+      </SubmitButton>
     </form>
   );
 }
 
-function WaitlistForm({ intent, prefill, onDone }) {
+// `availability` is the "Check Availability" variant: stored as a waitlist entry, with its own
+// intro/submit/success copy and without the waitlist-vs-deposit choice.
+function WaitlistForm({ intent, prefill, onDone, dict, common, locale, availability = false }) {
   const [form, setForm] = useState({
     full_name: "",
     email: "",
@@ -177,6 +243,8 @@ function WaitlistForm({ intent, prefill, onDone }) {
     color_preference: "",
     intent_type: intent,
   });
+  // Availability requests only; shown in the page's language, stored normalized (canonicalCity).
+  const [city, setCity] = useState("");
   const [status, setStatus] = useState("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -191,22 +259,25 @@ function WaitlistForm({ intent, prefill, onDone }) {
       {
         ...form,
         color_preference: form.color_preference.trim() || null,
+        // Empty means "anywhere in North Macedonia".
+        ...(availability && { city: canonicalCity(city) }),
       },
     ]);
 
     if (error) {
       setStatus("error");
-      setErrorMessage("Something went wrong — please try again in a moment.");
+      setErrorMessage(common.genericError);
       return;
     }
     setStatus("success");
   };
 
   if (status === "success") {
-    const successMessage =
-      form.intent_type === "Pre-Order Deposit"
-        ? "Thanks! We'll be in touch about your pre-order deposit."
-        : "You're on the waitlist! We'll email you as soon as a unit is available.";
+    const successMessage = availability
+      ? dict.availabilitySuccess
+      : form.intent_type === "Pre-Order Deposit"
+        ? dict.preorderSuccess
+        : dict.waitlistSuccess;
     return (
       <div className="flex flex-col gap-4">
         <StatusBanner status="success" successMessage={successMessage} />
@@ -215,7 +286,7 @@ function WaitlistForm({ intent, prefill, onDone }) {
           onClick={onDone}
           className="inline-flex w-full items-center justify-center rounded-full border border-silver/40 px-6 py-3 text-sm font-medium text-slate-100 transition-colors hover:border-teal hover:text-teal"
         >
-          Done
+          {common.done}
         </button>
       </div>
     );
@@ -223,34 +294,35 @@ function WaitlistForm({ intent, prefill, onDone }) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {availability && <p className="-mt-2 text-sm text-silver">{dict.availabilityIntro}</p>}
       <StatusBanner status={status} errorMessage={errorMessage} />
 
       <label className={labelClass}>
-        Full name
+        {common.fullName}
         <input
           required
           type="text"
           value={form.full_name}
           onChange={update("full_name")}
           className={inputClass}
-          placeholder="Jane Petrovska"
+          placeholder={common.namePlaceholder}
         />
       </label>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className={labelClass}>
-          Email
+          {common.email}
           <input
             required
             type="email"
             value={form.email}
             onChange={update("email")}
             className={inputClass}
-            placeholder="jane@example.com"
+            placeholder={common.emailPlaceholder}
           />
         </label>
         <label className={labelClass}>
-          Phone
+          {common.phone}
           <input
             required
             type="tel"
@@ -262,58 +334,77 @@ function WaitlistForm({ intent, prefill, onDone }) {
         </label>
       </div>
 
+      {availability && (
+        <CityField
+          value={city}
+          onChange={setCity}
+          locale={locale}
+          labels={dict.availabilityLocation}
+        />
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2">
         <label className={labelClass}>
-          Model interest
+          {dict.modelInterest}
           <select
             required
             value={form.model_interest}
             onChange={update("model_interest")}
-            className={inputClass}
+            className={selectClass}
           >
             <option value="L6">Linktour L6</option>
             <option value="L7">Linktour L7</option>
           </select>
         </label>
         <label className={labelClass}>
-          Color preference
+          {dict.colorPreference}
           <input
             type="text"
             value={form.color_preference}
             onChange={update("color_preference")}
             className={inputClass}
-            placeholder="e.g. White (optional)"
+            placeholder={dict.colorPlaceholder}
           />
         </label>
       </div>
 
-      <label className={labelClass}>
-        I&apos;d like to
-        <select
-          required
-          value={form.intent_type}
-          onChange={update("intent_type")}
-          className={inputClass}
-        >
-          <option value="Waitlist">Join the waitlist</option>
-          <option value="Pre-Order Deposit">Place a pre-order deposit</option>
-        </select>
-      </label>
+      {!availability && (
+        <label className={labelClass}>
+          {dict.intentLabel}
+          <select
+            required
+            value={form.intent_type}
+            onChange={update("intent_type")}
+            className={selectClass}
+          >
+            <option value="Waitlist">{dict.intents.waitlist}</option>
+            <option value="Pre-Order Deposit">{dict.intents.preorder}</option>
+          </select>
+        </label>
+      )}
 
-      <SubmitButton status={status}>
-        {form.intent_type === "Pre-Order Deposit" ? "Reserve / Pre-Order" : "Join Waitlist"}
+      <SubmitButton status={status} submittingLabel={common.submitting}>
+        {availability
+          ? city.trim()
+            ? format(dict.availabilityLocation.submitIn, { city: city.trim() })
+            : common.checkAvailability
+          : form.intent_type === "Pre-Order Deposit"
+            ? common.reserve
+            : dict.submitWaitlist}
       </SubmitButton>
     </form>
   );
 }
 
-const MODAL_CONFIG = {
-  "test-drive": { title: "Book a Test Drive", icon: CalendarCheck },
-  waitlist: { title: "Join the Waitlist", icon: Users },
-  reserve: { title: "Reserve / Pre-Order", icon: Users },
+// Titles are localized in dict.booking.titles, keyed by modal type.
+const MODAL_ICONS = {
+  "test-drive": CalendarCheck,
+  availability: PackageSearch,
+  waitlist: Users,
+  reserve: Users,
 };
 
-export default function BookingModal() {
+export default function BookingModal({ dict, common, locale }) {
   const { type, prefill, closeModal } = useBookingModal();
   const titleId = useId();
   const panelRef = useRef(null);
@@ -334,8 +425,7 @@ export default function BookingModal() {
     };
   }, [type, closeModal]);
 
-  const config = type ? MODAL_CONFIG[type] : null;
-  const Icon = config?.icon;
+  const Icon = type ? MODAL_ICONS[type] : null;
 
   return (
     <AnimatePresence>
@@ -364,7 +454,7 @@ export default function BookingModal() {
             <button
               type="button"
               onClick={closeModal}
-              aria-label="Close"
+              aria-label={common.close}
               className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-silver/30 text-slate-100 transition-colors hover:border-teal hover:text-teal"
             >
               <X className="h-4 w-4" />
@@ -375,16 +465,41 @@ export default function BookingModal() {
                 {Icon && <Icon className="h-5 w-5" />}
               </span>
               <h2 id={titleId} className="text-xl font-semibold text-slate-50">
-                {config?.title}
+                {type ? dict.titles[type] : null}
               </h2>
             </div>
 
-            {type === "test-drive" && <TestDriveForm prefill={prefill} onDone={closeModal} />}
+            {type === "test-drive" && (
+              <TestDriveForm prefill={prefill} onDone={closeModal} dict={dict} common={common} />
+            )}
+            {type === "availability" && (
+              <WaitlistForm
+                availability
+                intent="Waitlist"
+                prefill={prefill}
+                onDone={closeModal}
+                dict={dict}
+                common={common}
+                locale={locale}
+              />
+            )}
             {type === "waitlist" && (
-              <WaitlistForm intent="Waitlist" prefill={prefill} onDone={closeModal} />
+              <WaitlistForm
+                intent="Waitlist"
+                prefill={prefill}
+                onDone={closeModal}
+                dict={dict}
+                common={common}
+              />
             )}
             {type === "reserve" && (
-              <WaitlistForm intent="Pre-Order Deposit" prefill={prefill} onDone={closeModal} />
+              <WaitlistForm
+                intent="Pre-Order Deposit"
+                prefill={prefill}
+                onDone={closeModal}
+                dict={dict}
+                common={common}
+              />
             )}
           </motion.div>
         </motion.div>

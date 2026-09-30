@@ -1,0 +1,460 @@
+{
+  "meta": {
+    "title": "Auravia Electric Mobility — Linktour L6 & L7 in North Macedonia",
+    "description": "Compact Linktour L6 and L7 electric quadricycles, imported and serviced locally in North Macedonia. Book a test drive or join the waitlist."
+  },
+  "common": {
+    "bookTestDrive": "Book Test Drive",
+    "checkAvailability": "Check Availability",
+    "reserve": "Reserve / Pre-Order",
+    "waitlist": "Waitlist",
+    "photoComingSoon": "Photo coming soon",
+    "photosComingSoon": "Photos coming soon",
+    "comingSoon": "Coming soon",
+    "submitting": "Submitting…",
+    "done": "Done",
+    "close": "Close",
+    "genericError": "Something went wrong — please try again in a moment.",
+    "fullName": "Full name",
+    "email": "Email",
+    "phone": "Phone",
+    "namePlaceholder": "Jane Petrovska",
+    "emailPlaceholder": "jane@example.com"
+  },
+  "nav": {
+    "links": {
+      "models": "Models",
+      "compare": "Compare",
+      "ourStory": "Our Story",
+      "founders": "Founders",
+      "faq": "FAQ"
+    },
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "language": {
+      "label": "Language",
+      "en": "EN",
+      "mk": "MK",
+      "enName": "English",
+      "mkName": "Macedonian"
+    }
+  },
+  "hero": {
+    "badge": "Demo Vehicles Arrived in Macedonia — Reserve Your Test Drive Today",
+    "title": "Electric Mobility Made Practical",
+    "subtitle": "Compact outside, practical inside. Drive more, spend less.",
+    "highlights": [
+      {
+        "title": "Low operating cost",
+        "description": "Charge overnight for a fraction of fuel costs."
+      },
+      {
+        "title": "Easy urban parking",
+        "description": "A compact footprint fits tight city spaces."
+      },
+      {
+        "title": "Local after-sales guarantee",
+        "description": "Serviced locally by AVC-SM & BetaSped."
+      }
+    ]
+  },
+  "models": {
+    "heading": "Explore the Models",
+    "description": "Two compact electric quadricycles built for Macedonian streets — pick a model to see its full spec sheet and gallery.",
+    "showPhoto": "Show photo {n} of {name}",
+    "photoAlt": "{name} photo {n}",
+    "specLabels": {
+      "classification": "Quadricycle classification",
+      "battery": "Battery capacity",
+      "range": "Driving range",
+      "motorPower": "Motor power",
+      "topSpeed": "Top speed",
+      "chargingTime": "Charging time",
+      "dimensions": "Dimensions (L × W × H)",
+      "groundClearance": "Ground clearance",
+      "maxMass": "Max. permissible mass",
+      "gradeability": "Gradeability",
+      "tires": "Tyres",
+      "drive": "Drivetrain",
+      "driveModes": "Drive modes",
+      "wheelbase": "Wheelbase",
+      "track": "Track (front / rear)",
+      "turningCircle": "Turning circle"
+    },
+    "L6": {
+      "tagline": "Built for tight city streets.",
+      "specs": {
+        "classification": "L6e quadricycle",
+        "battery": "7.2 kWh LFP",
+        "motorPower": "6 kW rated · 12 kW peak · 65 N·m",
+        "chargingTime": "4 h (0–100%, 2 kW AC)",
+        "tires": "155/70 R13, steel rims",
+        "drive": "Rear-wheel drive, PMSM motor",
+        "driveModes": "Normal",
+        "turningCircle": "4.5 m"
+      }
+    },
+    "L7": {
+      "tagline": "More range, more performance.",
+      "specs": {
+        "classification": "L7e quadricycle",
+        "battery": "12.96 kWh LFP",
+        "motorPower": "10 kW rated · 23 kW peak · 95 N·m",
+        "chargingTime": "4.5 h (0–100%, 3.3 kW AC)",
+        "tires": "155/65 R14, steel rims",
+        "drive": "Rear-wheel drive, PMSM motor",
+        "driveModes": "Normal / Sport",
+        "turningCircle": "4.5 m"
+      }
+    }
+  },
+  "colors": {
+    "eyebrow": "Linktour L6 · Factory colours",
+    "heading": "Four colours. One L6.",
+    "description": "The L6 comes in four factory colours, each with the same black trim, panoramic roof, and graphic door panel. Pick one to see it.",
+    "swatchesLabel": "Choose a colour",
+    "imageAlt": "Linktour L6 in {color}, side view"
+  },
+  "compare": {
+    "heading": "Compare L6 vs. L7",
+    "description": "See both models side by side, then estimate what switching from a petrol or diesel car could save you.",
+    "specification": "Specification",
+    "calculator": {
+      "title": "Fuel-Savings Calculator",
+      "dailyDistance": "Daily commuting distance",
+      "kmPerDay": "{n} km/day",
+      "monthlySavings": "Estimated monthly savings",
+      "yearlySavings": "Estimated yearly savings",
+      "vsLine": "vs. {fuelCost} {fuel} / {ev} electricity",
+      "basedOn": "Based on {km} km/year",
+      "adjust": "Adjust cost assumptions",
+      "evConsumption": "EV consumption (kWh/100km)",
+      "electricityPrice": "Electricity price (€/kWh)",
+      "fuelType": "Fuel Type",
+      "fuelTypes": {
+        "petrol": "Petrol (Ultra 95+)",
+        "diesel": "Diesel (Ultra Diesel)"
+      },
+      "fuelNames": {
+        "petrol": "petrol",
+        "diesel": "diesel"
+      },
+      "fuelConsumption": {
+        "petrol": "Petrol car consumption (L/100km)",
+        "diesel": "Diesel car consumption (L/100km)"
+      },
+      "fuelPrice": {
+        "petrol": "Petrol price (€/L)",
+        "diesel": "Diesel price (€/L)"
+      },
+      "priceLoading": "Loading today's Makpetrol price…",
+      "priceSource": "Makpetrol pump price on {date}: {mkd} MKD/L ÷ {rate}",
+      "priceFallback": "Live prices are unavailable, so an estimate of €{price}/L is used.",
+      "useTodaysPrice": "Use today's price (€{price})",
+      "disclaimer": "Consumption and electricity defaults are illustrative estimates, not confirmed Linktour figures. Fuel prices are Makpetrol's current pump prices, converted at 61.5 MKD/€. Adjust any value to match your own driving.",
+      "thousandsSeparator": ",",
+      "decimalSeparator": "."
+    }
+  },
+  "trims": {
+    "eyebrow": "Versions & equipment",
+    "heading": "What comes with each version",
+    "description": "Linktour builds the L6 in three versions and the L7 in two. Everything below comes straight from Linktour's technical specification sheet.",
+    "standardTitle": "Standard on every version",
+    "standard": [
+      "Glass canopy roof",
+      "Frameless doors",
+      "LED daytime running lights and rear lights",
+      "Integrated and reading lamps",
+      "5-inch digital instrument cluster",
+      "12V power socket",
+      "Adjustable driver and passenger seats",
+      "Three-point seat belts with belt warning",
+      "ABS with electronic brake-force distribution",
+      "Electric power steering",
+      "Hill-start assist and creep start",
+      "Brake override and regenerative braking",
+      "Defrosting and defogging",
+      "Spare mechanical key"
+    ],
+    "matrixTitle": "What differs by version",
+    "featureColumn": "Feature",
+    "included": "Included",
+    "notIncluded": "Not included",
+    "features": {
+      "infotainment": "10.25\" touchscreen with CarPlay / Android Auto, Bluetooth, speakers, and USB",
+      "rearCamera": "Rear view camera",
+      "usbC": "60 W USB-C fast-charging port",
+      "climate": "Climate control",
+      "twoLevelHeating": "Two-level heating",
+      "airCirculation": "Fresh-air circulation with face and foot vents",
+      "seats": "Seat upholstery",
+      "keyless": "Smart key with keyless entry and push-button start",
+      "roofRack": "Roof rack (decorative)",
+      "appRemote": "Smartphone app: remote lock, windows, pre-heating, car finder, and charging alerts",
+      "appStatusClimate": "Smartphone app: vehicle status and remote temperature control"
+    },
+    "values": {
+      "heatingOnly": "Heating only",
+      "airCon": "Heating and air conditioning",
+      "fabric": "Fabric",
+      "leather": "Leather"
+    },
+    "note": "Which versions will be offered in North Macedonia is still being confirmed. Ask our team about a specific version."
+  },
+  "story": {
+    "heading": "Our Journey",
+    "description": "From a factory agreement in China to demo vehicles on the road in Skopje — three milestones behind Auravia Electric Mobility.",
+    "showPhoto": "Show photo {n}",
+    "milestones": {
+      "china": {
+        "title": "China Partnership",
+        "description": "AVC-SM and BetaSped signed the official agreement with Linktour Auto in China, forming the joint venture behind Auravia Electric Mobility."
+      },
+      "romania": {
+        "title": "Romania Transit",
+        "description": "The first two Linktour L7 demonstration vehicles were transported by truck from Romania, giving early customers and partners a chance to experience the L7 before wider sales began."
+      },
+      "macedonia": {
+        "title": "Macedonia Arrival",
+        "description": "The demo vehicles arrived in Skopje for road testing, marking the start of Auravia Electric Mobility's nationwide launch."
+      }
+    }
+  },
+  "founders": {
+    "heading": "The Powerhouse Behind Auravia",
+    "description": "Auravia Electric Mobility is a joint venture between two established partners, so every vehicle is backed by real technical expertise and a working parts supply chain — not just an import label.",
+    "partners": {
+      "avc-sm": {
+        "years": "24+ Years",
+        "summary": "Macedonian electromobility specialist with deep technical expertise in EV batteries and electronics.",
+        "capabilities": [
+          "Battery diagnostics & cell balancing",
+          "Technical repair & maintenance",
+          "Local warranty support"
+        ]
+      },
+      "betasped": {
+        "years": "30+ Years",
+        "summary": "Logistics and freight-forwarding partner handling every vehicle's journey into Macedonia.",
+        "capabilities": [
+          "International logistics & customs coordination",
+          "Warehousing & import support",
+          "30+ years of supply-chain reliability"
+        ]
+      }
+    },
+    "closing": "Every Auravia vehicle is backed by AVC-SM's battery diagnostics expertise and BetaSped's logistics network — so genuine parts and qualified service are always close to home in North Macedonia."
+  },
+  "faq": {
+    "heading": "Frequently Asked Questions",
+    "description": "Answers to the questions we hear most about charging, licensing, and local support.",
+    "categories": [
+      {
+        "id": "charging",
+        "title": "Charging & Range",
+        "items": [
+          {
+            "q": "Can I charge a Linktour L6 or L7 at home?",
+            "a": "Yes — both models charge from a standard household wall outlet, so no dedicated wallbox is required. The on-board charger accepts up to 2 kW (L6) or 3.3 kW (L7) of AC power, so a full charge takes about 4 hours for the L6 and 4.5 hours for the L7."
+          },
+          {
+            "q": "How long does a full charge take?",
+            "a": "The L6's 7.2 kWh battery charges from 0 to 100% in about 4 hours at 2 kW. The L7's larger 12.96 kWh battery takes about 4.5 hours at 3.3 kW. Both use AC charging."
+          },
+          {
+            "q": "What's the driving range on a single charge?",
+            "a": "The L6 covers up to 120 km and the L7 up to 180 km on a full charge (WMTC test cycle). Real-world range varies with speed, temperature, and load."
+          }
+        ]
+      },
+      {
+        "id": "licensing",
+        "title": "Licensing & Quadricycles",
+        "items": [
+          {
+            "q": "What's the difference between the L6 and L7 classification?",
+            "a": "The L6 is registered as an L6e light quadricycle and the L7 as an L7e heavy quadricycle — official EU vehicle categories with different weight, power, and speed limits. L7e permits higher performance than L6e."
+          },
+          {
+            "q": "Do I need a special driver's license?",
+            "a": "No special license is needed: a standard Category B (car) license covers both models. The Linktour L6 is an L6e light quadricycle (max 45 km/h), so it can be driven with either a Category AM (moped) or a Category B license. The Linktour L7 is an L7e heavy quadricycle and requires a Category B license."
+          },
+          {
+            "q": "Are there speed limits for these vehicles?",
+            "a": "Yes. The L6 has a top speed of 45 km/h, the limit for the L6e light quadricycle category. The L7 reaches 90 km/h."
+          }
+        ]
+      },
+      {
+        "id": "service",
+        "title": "Local Service & Warranty",
+        "items": [
+          {
+            "q": "Who handles service and warranty in North Macedonia?",
+            "a": "AVC-SM CO., LTD., with 24+ years of experience in electric mobility, batteries, and electronics, provides local warranty support, battery diagnostics, cell balancing, and repair — backed by official parts through our partnership with Linktour."
+          },
+          {
+            "q": "What happens if something goes wrong with the battery?",
+            "a": "AVC-SM's technical team has specialized equipment and trained personnel for battery diagnostics, testing, balancing, and repair, so battery issues are handled locally rather than requiring you to ship the vehicle abroad."
+          },
+          {
+            "q": "How does import and delivery work?",
+            "a": "BetaSped, our logistics partner with 30+ years in freight forwarding, handles import, customs, and delivery — so every vehicle arrives through an established, professional supply chain."
+          }
+        ]
+      }
+    ],
+    "specialist": {
+      "title": "Ask a Specialist",
+      "subtitle": "Don't see your question? Send it directly to our team.",
+      "message": "Message",
+      "messagePlaceholder": "Ask us anything about the L6, L7, charging, or licensing…",
+      "submit": "Send to a Specialist",
+      "success": "Thanks! A specialist will get back to you shortly."
+    }
+  },
+  "booking": {
+    "titles": {
+      "test-drive": "Book a Test Drive",
+      "availability": "Check Availability",
+      "waitlist": "Join the Waitlist",
+      "reserve": "Reserve / Pre-Order"
+    },
+    "modelPreference": "Model preference",
+    "modelBoth": "Both — not sure yet",
+    "preferredDate": "Preferred date",
+    "dateHint": "Available from {min} to {max}",
+    "dateErrors": {
+      "required": "Please choose a date for your test drive.",
+      "past": "That date has already passed. Please choose {min} or later.",
+      "tooLate": "Test drives can be booked up to 3 months ahead. Please choose a date on or before {max}.",
+      "invalid": "Please enter a complete, valid date between {min} and {max}."
+    },
+    "calendar": {
+      "placeholder": "Choose a date",
+      "prevMonth": "Previous month",
+      "nextMonth": "Next month",
+      "months": [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ],
+      "weekdays": [
+        "Mo",
+        "Tu",
+        "We",
+        "Th",
+        "Fr",
+        "Sa",
+        "Su"
+      ],
+      "weekdaysLong": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ]
+    },
+    "timeSlot": "Time slot",
+    "timeSlots": {
+      "morning": "Morning (9:00 – 12:00)",
+      "afternoon": "Afternoon (12:00 – 15:00)",
+      "lateAfternoon": "Late Afternoon (15:00 – 18:00)"
+    },
+    "customerType": "Customer type",
+    "customerTypes": {
+      "private": "Private buyer",
+      "youngDriver": "Young driver / first car",
+      "business": "Business / fleet"
+    },
+    "testDriveSuccess": "You're booked! We'll confirm your test drive by email or phone shortly.",
+    "modelInterest": "Model interest",
+    "colorPreference": "Color preference",
+    "colorPlaceholder": "e.g. White (optional)",
+    "intentLabel": "I'd like to",
+    "intents": {
+      "waitlist": "Join the waitlist",
+      "preorder": "Place a pre-order deposit"
+    },
+    "submitWaitlist": "Join Waitlist",
+    "waitlistSuccess": "You're on the waitlist! We'll email you as soon as a unit is available.",
+    "preorderSuccess": "Thanks! We'll be in touch about your pre-order deposit.",
+    "availabilityIntro": "Tell us which model you're interested in and we'll get back to you about availability and delivery times.",
+    "availabilitySuccess": "Thanks! We'll get back to you about availability shortly.",
+    "availabilityLocation": {
+      "label": "City or Region",
+      "placeholder": "Enter your city (e.g. Skopje, Bitola, Ohrid)",
+      "useLocation": "Use current location",
+      "detecting": "Detecting...",
+      "found": "Location found: {city}",
+      "emptyHint": "Leave blank to check stock across North Macedonia.",
+      "denied": "Location access was declined. Please type your city instead.",
+      "unavailable": "We couldn't detect your location. Please type your city instead.",
+      "unsupported": "This browser can't share your location. Please type your city instead.",
+      "outside": "You seem to be outside North Macedonia. Please type your city instead.",
+      "submitIn": "Check availability in {city}"
+    }
+  },
+  "footer": {
+    "tagline": "Auravia builds electric vehicles for the next era of driving.",
+    "explore": "Explore",
+    "getInTouch": "Get in Touch",
+    "rights": "© {year} Auravia Electric Mobility. All rights reserved.",
+    "backToTop": "Back to top"
+  },
+  "chat": {
+    "title": "Auravia Assistant",
+    "subtitle": "Ask about the L6, L7, charging & more",
+    "dialogLabel": "Auravia Assistant chat",
+    "greeting": "Hi! I'm the Auravia assistant. Ask me about the L6, L7, charging, or local warranty — or use a quick action below.",
+    "thinking": "Thinking…",
+    "placeholder": "Ask a question…",
+    "send": "Send message",
+    "open": "Open chat",
+    "close": "Close chat",
+    "noAnswer": "Sorry, I couldn't find an answer to that.",
+    "error": "Sorry, something went wrong — please try again.",
+    "quickActions": {
+      "compare": {
+        "label": "Compare L6 vs L7",
+        "prompt": "What's the difference between the L6 and L7?"
+      },
+      "charging": {
+        "label": "Charging Info",
+        "prompt": "How do I charge my Linktour vehicle at home?"
+      },
+      "testDrive": {
+        "label": "Book Test Drive"
+      }
+    },
+    "replies": {
+      "suspension": "The L6 can be driven with a Category AM or B license, and the L7 requires Category B. Whether a suspension, revocation, or driving ban also covers a given category depends on the terms of that decision, so we can't advise on it. Please check with the authority that issued it before driving.",
+      "license": "No special license is needed: a standard Category B (car) license covers both models. The L6 (L6e light quadricycle, max 45 km/h) can also be driven with a Category AM (moped) license, while the L7 (L7e heavy quadricycle) requires Category B. For minimum age requirements, our specialist team can confirm what applies to you.",
+      "charging": "Both the L6 and L7 charge from a standard household wall outlet — no dedicated wallbox required. The L6's 7.2 kWh battery charges fully (0–100%) in about 4 hours at 2 kW, and the L7's 12.96 kWh battery in about 4.5 hours at 3.3 kW.",
+      "compare": "The L6 is an L6e light quadricycle built for tight city streets: 7.2 kWh battery, 45 km/h top speed, 120 km range, drivable with a Category AM or B license. The L7 is an L7e heavy quadricycle: 12.96 kWh battery, 90 km/h top speed, 180 km range, and requires a Category B license.",
+      "service": "AVC-SM, with 24+ years of experience in electric mobility and batteries, handles local warranty support, battery diagnostics, cell balancing, and repair in North Macedonia — backed by official Linktour parts.",
+      "testDrive": "You can book a test drive right from this site — use the \"Book Test Drive\" button in the menu or hero section, or the quick action below.",
+      "pricing": "Operating costs are low thanks to electric propulsion and compact design, but exact pricing is still being finalized. Join the waitlist or place a pre-order deposit and we'll follow up with introductory pricing as soon as it's confirmed.",
+      "logistics": "BetaSped, our logistics partner with 30+ years of freight-forwarding experience, handles import and customs — vehicles arrive in Macedonia through an established, professional supply chain.",
+      "fallback": "I can help with charging, comparing the L6 and L7, local warranty and service, or booking a test drive — what would you like to know? For anything specific, our specialist team can help via the \"Ask a Specialist\" form."
+    }
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you're looking for doesn't exist or has moved.",
+    "backHome": "Back to home"
+  }
+}
