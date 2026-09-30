@@ -17,7 +17,7 @@ import {
   selectClass,
 } from "@/components/FormControls";
 import DatePicker from "@/components/DatePicker";
-import CityField, { canonicalCity } from "@/components/CityField";
+import CityField from "@/components/CityField";
 import { format } from "@/lib/i18n";
 
 // Option values are what gets stored in Supabase, so they stay in English regardless of
@@ -232,19 +232,100 @@ function TestDriveForm({ prefill, onDone, dict, common }) {
   );
 }
 
-// `availability` is the "Check Availability" variant: stored as a waitlist entry, with its own
-// intro/submit/success copy and without the waitlist-vs-deposit choice.
-function WaitlistForm({ intent, prefill, onDone, dict, common, locale, availability = false }) {
+const modelFromPrefill = (prefill) =>
+  prefill.model === "L6" || prefill.model === "L7" ? prefill.model : "L6";
+
+// "Check Availability" collects no contact details and saves nothing: stock is confirmed by the
+// team, so the result explains that and hands off to the waitlist or a test drive (prefilled with
+// the chosen model) for anyone who wants a reply.
+function AvailabilityForm({ prefill, dict, common, locale, openModal }) {
+  const [city, setCity] = useState("");
+  const [model, setModel] = useState(() => modelFromPrefill(prefill));
+  const [color, setColor] = useState("");
+  const [checked, setChecked] = useState(false);
+
+  const cityName = city.trim();
+  const modelLabel = `Linktour ${model}${color.trim() ? ` (${color.trim()})` : ""}`;
+
+  if (checked) {
+    const message = cityName
+      ? format(dict.availabilityResultCity, { model: modelLabel, city: cityName })
+      : format(dict.availabilityResultAnywhere, { model: modelLabel });
+    return (
+      <div className="flex flex-col gap-4">
+        <StatusBanner status="success" successMessage={message} />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => openModal("waitlist", { model })}
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-teal px-6 py-3 text-sm font-semibold text-obsidian transition-transform hover:scale-[1.02]"
+          >
+            <Users className="h-4 w-4" />
+            {dict.titles.waitlist}
+          </button>
+          <button
+            type="button"
+            onClick={() => openModal("test-drive", { model })}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-silver/40 px-6 py-3 text-sm font-medium text-slate-100 transition-colors hover:border-teal hover:text-teal"
+          >
+            <CalendarCheck className="h-4 w-4" />
+            {dict.titles["test-drive"]}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        setChecked(true);
+      }}
+      className="flex flex-col gap-4"
+    >
+      <p className="-mt-2 text-sm text-silver">{dict.availabilityIntro}</p>
+
+      <CityField value={city} onChange={setCity} locale={locale} labels={dict.availabilityLocation} />
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className={labelClass}>
+          {dict.modelInterest}
+          <select required value={model} onChange={(event) => setModel(event.target.value)} className={selectClass}>
+            <option value="L6">Linktour L6</option>
+            <option value="L7">Linktour L7</option>
+          </select>
+        </label>
+        <label className={labelClass}>
+          {dict.colorPreference}
+          <input
+            type="text"
+            value={color}
+            onChange={(event) => setColor(event.target.value)}
+            className={inputClass}
+            placeholder={dict.colorPlaceholder}
+          />
+        </label>
+      </div>
+
+      <SubmitButton status="idle">
+        {cityName
+          ? format(dict.availabilityLocation.submitIn, { city: cityName })
+          : common.checkAvailability}
+      </SubmitButton>
+    </form>
+  );
+}
+
+function WaitlistForm({ intent, prefill, onDone, dict, common }) {
   const [form, setForm] = useState({
     full_name: "",
     email: "",
     phone: "",
-    model_interest: prefill.model === "L6" || prefill.model === "L7" ? prefill.model : "L6",
+    model_interest: modelFromPrefill(prefill),
     color_preference: "",
     intent_type: intent,
   });
-  // Availability requests only; shown in the page's language, stored normalized (canonicalCity).
-  const [city, setCity] = useState("");
   const [status, setStatus] = useState("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -259,8 +340,6 @@ function WaitlistForm({ intent, prefill, onDone, dict, common, locale, availabil
       {
         ...form,
         color_preference: form.color_preference.trim() || null,
-        // Empty means "anywhere in North Macedonia".
-        ...(availability && { city: canonicalCity(city) }),
       },
     ]);
 
@@ -273,11 +352,8 @@ function WaitlistForm({ intent, prefill, onDone, dict, common, locale, availabil
   };
 
   if (status === "success") {
-    const successMessage = availability
-      ? dict.availabilitySuccess
-      : form.intent_type === "Pre-Order Deposit"
-        ? dict.preorderSuccess
-        : dict.waitlistSuccess;
+    const successMessage =
+      form.intent_type === "Pre-Order Deposit" ? dict.preorderSuccess : dict.waitlistSuccess;
     return (
       <div className="flex flex-col gap-4">
         <StatusBanner status="success" successMessage={successMessage} />
@@ -294,7 +370,6 @@ function WaitlistForm({ intent, prefill, onDone, dict, common, locale, availabil
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      {availability && <p className="-mt-2 text-sm text-silver">{dict.availabilityIntro}</p>}
       <StatusBanner status={status} errorMessage={errorMessage} />
 
       <label className={labelClass}>
@@ -334,15 +409,6 @@ function WaitlistForm({ intent, prefill, onDone, dict, common, locale, availabil
         </label>
       </div>
 
-      {availability && (
-        <CityField
-          value={city}
-          onChange={setCity}
-          locale={locale}
-          labels={dict.availabilityLocation}
-        />
-      )}
-
       <div className="grid gap-4 sm:grid-cols-2">
         <label className={labelClass}>
           {dict.modelInterest}
@@ -368,29 +434,21 @@ function WaitlistForm({ intent, prefill, onDone, dict, common, locale, availabil
         </label>
       </div>
 
-      {!availability && (
-        <label className={labelClass}>
-          {dict.intentLabel}
-          <select
-            required
-            value={form.intent_type}
-            onChange={update("intent_type")}
-            className={selectClass}
-          >
-            <option value="Waitlist">{dict.intents.waitlist}</option>
-            <option value="Pre-Order Deposit">{dict.intents.preorder}</option>
-          </select>
-        </label>
-      )}
+      <label className={labelClass}>
+        {dict.intentLabel}
+        <select
+          required
+          value={form.intent_type}
+          onChange={update("intent_type")}
+          className={selectClass}
+        >
+          <option value="Waitlist">{dict.intents.waitlist}</option>
+          <option value="Pre-Order Deposit">{dict.intents.preorder}</option>
+        </select>
+      </label>
 
       <SubmitButton status={status} submittingLabel={common.submitting}>
-        {availability
-          ? city.trim()
-            ? format(dict.availabilityLocation.submitIn, { city: city.trim() })
-            : common.checkAvailability
-          : form.intent_type === "Pre-Order Deposit"
-            ? common.reserve
-            : dict.submitWaitlist}
+        {form.intent_type === "Pre-Order Deposit" ? common.reserve : dict.submitWaitlist}
       </SubmitButton>
     </form>
   );
@@ -405,7 +463,7 @@ const MODAL_ICONS = {
 };
 
 export default function BookingModal({ dict, common, locale }) {
-  const { type, prefill, closeModal } = useBookingModal();
+  const { type, prefill, openModal, closeModal } = useBookingModal();
   const titleId = useId();
   const panelRef = useRef(null);
 
@@ -473,14 +531,12 @@ export default function BookingModal({ dict, common, locale }) {
               <TestDriveForm prefill={prefill} onDone={closeModal} dict={dict} common={common} />
             )}
             {type === "availability" && (
-              <WaitlistForm
-                availability
-                intent="Waitlist"
+              <AvailabilityForm
                 prefill={prefill}
-                onDone={closeModal}
                 dict={dict}
                 common={common}
                 locale={locale}
+                openModal={openModal}
               />
             )}
             {type === "waitlist" && (

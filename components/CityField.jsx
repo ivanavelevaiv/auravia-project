@@ -3,23 +3,11 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Loader2, LocateFixed } from "lucide-react";
 import { inputClass, labelClass } from "@/components/FormControls";
-import { MK_CITIES, nearestCity } from "@/lib/cities";
+import { nearestCity } from "@/lib/cities";
 import { format } from "@/lib/i18n";
 
 // The name to show for a town on the current locale's site.
-export const cityLabel = (city, locale) => (locale === "mk" ? city.mk : city.name);
-
-// Normalizes what gets stored: a recognised town (typed in English or Macedonian, any case)
-// becomes its English name so requests group cleanly; anything else is kept as typed.
-export function canonicalCity(text) {
-  const trimmed = text.trim();
-  if (!trimmed) return null;
-  const lower = trimmed.toLocaleLowerCase();
-  const match = MK_CITIES.find(
-    (city) => city.name.toLocaleLowerCase() === lower || city.mk.toLocaleLowerCase() === lower
-  );
-  return match ? match.name : trimmed;
-}
+const cityLabel = (city, locale) => (locale === "mk" ? city.mk : city.name);
 
 // Geolocation error codes (GeolocationPositionError) mapped to our messages.
 const GEO_ERRORS = { 1: "denied", 2: "unavailable", 3: "unavailable" };

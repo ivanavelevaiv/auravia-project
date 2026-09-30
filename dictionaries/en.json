@@ -109,11 +109,13 @@
     }
   },
   "colors": {
-    "eyebrow": "Linktour L6 · Factory colours",
-    "heading": "Four colours. One L6.",
-    "description": "The L6 comes in four factory colours, each with the same black trim, panoramic roof, and graphic door panel. Pick one to see it.",
+    "eyebrow": "Factory colours",
+    "heading": "Four colours. Two models.",
+    "description": "The L6 and L7 both come in four factory colours, each with the same black trim, panoramic roof, and graphic door panel. Pick a model and a colour to see it.",
+    "modelsLabel": "Choose a model",
     "swatchesLabel": "Choose a colour",
-    "imageAlt": "Linktour L6 in {color}, side view"
+    "imageAlt": "{model} in {color}, side view",
+    "borrowedImageNote": "{pictured} shown. The {model} comes in the same colours, with larger 14\" wheels and a roof rack."
   },
   "compare": {
     "heading": "Compare L6 vs. L7",
@@ -156,11 +158,11 @@
       "decimalSeparator": "."
     }
   },
-  "trims": {
-    "eyebrow": "Versions & equipment",
-    "heading": "What comes with each version",
-    "description": "Linktour builds the L6 in three versions and the L7 in two. Everything below comes straight from Linktour's technical specification sheet.",
-    "standardTitle": "Standard on every version",
+  "equipment": {
+    "eyebrow": "Equipment",
+    "heading": "What comes with every L6 and L7",
+    "description": "The specifications below come straight from Linktour's official technical documentation.",
+    "standardTitle": "Standard equipment",
     "standard": [
       "Glass canopy roof",
       "Frameless doors",
@@ -176,31 +178,7 @@
       "Brake override and regenerative braking",
       "Defrosting and defogging",
       "Spare mechanical key"
-    ],
-    "matrixTitle": "What differs by version",
-    "featureColumn": "Feature",
-    "included": "Included",
-    "notIncluded": "Not included",
-    "features": {
-      "infotainment": "10.25\" touchscreen with CarPlay / Android Auto, Bluetooth, speakers, and USB",
-      "rearCamera": "Rear view camera",
-      "usbC": "60 W USB-C fast-charging port",
-      "climate": "Climate control",
-      "twoLevelHeating": "Two-level heating",
-      "airCirculation": "Fresh-air circulation with face and foot vents",
-      "seats": "Seat upholstery",
-      "keyless": "Smart key with keyless entry and push-button start",
-      "roofRack": "Roof rack (decorative)",
-      "appRemote": "Smartphone app: remote lock, windows, pre-heating, car finder, and charging alerts",
-      "appStatusClimate": "Smartphone app: vehicle status and remote temperature control"
-    },
-    "values": {
-      "heatingOnly": "Heating only",
-      "airCon": "Heating and air conditioning",
-      "fabric": "Fabric",
-      "leather": "Leather"
-    },
-    "note": "Which versions will be offered in North Macedonia is still being confirmed. Ask our team about a specific version."
+    ]
   },
   "story": {
     "heading": "Our Journey",
@@ -392,8 +370,9 @@
     "submitWaitlist": "Join Waitlist",
     "waitlistSuccess": "You're on the waitlist! We'll email you as soon as a unit is available.",
     "preorderSuccess": "Thanks! We'll be in touch about your pre-order deposit.",
-    "availabilityIntro": "Tell us which model you're interested in and we'll get back to you about availability and delivery times.",
-    "availabilitySuccess": "Thanks! We'll get back to you about availability shortly.",
+    "availabilityIntro": "Tell us where you are and which model and colour you're after.",
+    "availabilityResultCity": "Availability of the {model} in {city} changes daily, so our team confirms it personally. Join the waitlist or book a test drive and we'll contact you with current stock and delivery times.",
+    "availabilityResultAnywhere": "Availability of the {model} changes daily, so our team confirms it personally. Join the waitlist or book a test drive and we'll contact you with current stock and delivery times.",
     "availabilityLocation": {
       "label": "City or Region",
       "placeholder": "Enter your city (e.g. Skopje, Bitola, Ohrid)",

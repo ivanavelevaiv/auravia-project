@@ -650,3 +650,114 @@ Log it and verify `npm run build` passes.
 **Caveats:**
 - Scraping depends on Makpetrol's page. If they rename the columns or restructure it, the route returns 502 (or keeps serving the last good price) and the calculator falls back to €1.30 until `lib/fuelPrices.js` is updated.
 - Makpetrol's terms of use for automated access weren't reviewed. The 6-hour cache keeps it to a handful of requests per day.
+
+---
+
+## 2026-09-30 — "Check Availability" without contact details
+
+**Prompt:** Remove Full name, Email, and Phone from the Check Availability form so only City or Region, Model interest, and Color preference remain. Remove the related state, validation, and submission handling, clean up unused i18n keys, log the update, and verify `npm run build` passes.
+
+**Decision (asked the user):** without contact details the request can't be stored in `waitlist`, where `full_name`/`email`/`phone` are `NOT NULL`, and nobody could reply to it. Options offered: save anonymously to a new table, make the waitlist contact columns optional, or save nothing. The user chose **"Don't save anything"**.
+
+**Output:**
+- **`components/BookingModal.jsx`:**
+  - New `AvailabilityForm` with only `CityField`, a model select (prefilled from the hero's L6/L7 tab), and a free-text colour. Its state is `city`, `model`, `color`, and `checked`.
+  - Submitting makes **no network request**. It shows a result that honestly explains stock is confirmed by the team, with model, colour, and city in the text, e.g. "Availability of the Linktour L7 (Sprout Green) in Bitola changes daily, so our team confirms it personally…", or the version without a city if it was left blank.
+  - The result offers **Join the Waitlist** and **Book a Test Drive** buttons, which open those forms prefilled with the chosen model for anyone who wants a reply.
+  - `WaitlistForm` is back to a plain waitlist/pre-order form: the `availability` flag, city state, `city` insert field, availability intro/submit/success branches, and `locale` prop are removed. A shared `modelFromPrefill()` helper serves both forms.
+  - The modal now reads `openModal` from context for the handoff buttons.
+- **`components/CityField.jsx`:** removed `canonicalCity()` (which normalised the city for storage) and the now-unused `MK_CITIES` import. `cityLabel` is module-private. **`lib/cities.js`:** updated the comment that said the English name is stored.
+- **Dictionaries (EN and MK):**
+  - Updated `booking.availabilityIntro` to "Tell us where you are and which model and colour you're after."
+  - Replaced `booking.availabilitySuccess`, which promised "we'll get back to you", with `availabilityResultCity` / `availabilityResultAnywhere`.
+  - `common.fullName`/`email`/`phone` and the placeholders are **kept**: the test-drive and waitlist/reserve forms and the FAQ's Ask a Specialist form still use them.
+  - 309 keys, in sync.
+- **Database:** nothing changed. The `waitlist.city` column added on 2026-09-30 is now unused, but it's nullable and harmless, so it was left in place pending the user's call.
+
+**Verified:**
+- `npm run lint` and `npm run build` pass.
+- Playwright on `next start`, 13/13 checks, with Supabase intercepted to count requests:
+  - The availability form has exactly three controls: City or Region, Model interest (prefilled L7 from the hero tab), and Color preference, with no email or tel inputs.
+  - The geolocation city gives the "Check availability in Bitola" label, and the result names model, colour, and city.
+  - **0 Supabase requests** on submit in EN and MK.
+  - Join the Waitlist opens the full waitlist form prefilled with L7 and still submits to `waitlist`.
+  - MK: the default submit label, the no-city message, and the test-drive handoff prefilled with L6.
+  - No page errors.
+
+---
+
+## 2026-09-30 — L7 added to the factory colours section
+
+**Prompt:** Add the L7 to the factory colours section (the prompt said `components/ModelShowcase.jsx`, but the section lives in `components/ColorShowcase.jsx`), mirroring the L6 picker: the four colours (Moon White, Sprout Green, Rock Grey, Starlit Black), swatches that update the preview image and colour label, and no "Reserve in [Color]" button. Add translation keys, log it, and verify `npm run build` passes.
+
+**Decision (asked the user):** there are no L7 colour renders; `public/images/L7/` has only gallery photos. The L6 renders aren't an exact stand-in, because the spec sheet gives the L7 14" wheels (L6: 13") and a standard roof rack. Options offered: the user supplies L7 renders, reuse the L6 renders with a visible label, or build now with a "photo coming soon" placeholder. The user chose **"Reuse L6 renders, labelled"**.
+
+**Output:**
+- **`lib/models.js`:** the four colours are now one shared `FACTORY_COLORS` list, used by both models. The L7 gets `colorImagesFrom: "L6"`, with a comment explaining how to switch to its own renders later.
+- **`components/ColorShowcase.jsx`:**
+  - An L6/L7 model switch, the same pill-tab pattern as the other model tabs, with a `layoutId` animation and `aria-pressed`.
+  - The swatches, crossfading images, and the model name plus colour label all follow the selected model. The chosen colour carries over when switching model.
+  - For the L7, a visible note under the image says the L6 is shown and that the L7 has the same colours with 14" wheels and a roof rack. The image's alt text names the model actually pictured (Linktour L6), so screen readers aren't misled either.
+  - Still no Reserve button.
+- **Dictionaries (EN and MK):**
+  - Section copy covers both models: "Factory colours" / "Four colours. Two models." / a new description.
+  - Added `modelsLabel` and `borrowedImageNote`.
+  - `imageAlt` now takes `{model}`.
+  - Colour names stay untranslated product names, as before.
+  - 311 keys, in sync.
+
+**Verified:**
+- `npm run lint` and `npm run build` pass.
+- Playwright on `next start`, 21/21 checks in EN and MK:
+  - The section starts on L6 / Moon White with no note, and has no Reserve button.
+  - Picking Sprout Green on the L6 and switching to the L7 keeps Sprout Green, shows the L6 render with the note, and the alt text names the L6.
+  - Each of the four L7 swatches shows exactly its own image with the matching label.
+  - Switching back to the L6 hides the note.
+  - No page errors, and no overflow at 390px.
+
+**Follow-up:** once real L7 colour renders exist, give the L7 its own colour list (same ids, new `image` paths) and remove `colorImagesFrom`. The note then disappears automatically.
+
+---
+
+## 2026-09-30 — Removed the per-version table from the equipment section
+
+**Prompt:** Remove the "What differs by version" table and its code/data. Replace "Linktour builds the L6 in three versions and the L7 in two. Everything below comes straight from Linktour's technical specification sheet." with "The specifications below come straight from Linktour's official technical documentation." / "Спецификациите подолу доаѓаат директно од официјалната техничка документација на Linktour." Delete the table's translation keys, log the change, and verify `npm run build` passes.
+
+**Output:**
+- **The table** lived in `components/TrimFeatures.jsx`, not `ModelComparison.jsx`, with its data in `lib/trims.js`. Both files are deleted, since `lib/trims.js` had no other users.
+- **New `components/StandardEquipment.jsx`** (section `#equipment`, same place on the page) keeps only the "standard equipment" checklist (14 items), which is accurate for every L6 and L7. `app/[locale]/page.js` renders it in place of `TrimFeatures`.
+- **Wording that still implied multiple versions was updated too**, to match the goal of the prompt:
+  - eyebrow "Versions & equipment" → "Equipment" / "Опрема"
+  - heading "What comes with each version" → "What comes with every L6 and L7" / "Што добивате со секој L6 и L7"
+  - checklist title "Standard on every version" → "Standard equipment" / "Стандардна опрема"
+- **Dictionaries (EN and MK):**
+  - `trims` renamed to `equipment`, with the requested description text.
+  - Removed the table's keys: `matrixTitle`, `featureColumn`, `included`, `notIncluded`, `features.*`, `values.*`, and the "which versions will be offered" `note`.
+  - 291 keys, in sync.
+- `lib/models.js`: a comment that pointed at `lib/trims.js` now points at `docs/linktour-specs.md`, which keeps the full per-trim reference table from the PDF as internal documentation.
+
+**Verified:**
+- `npm run lint` and `npm run build` pass, with no references to `TrimFeatures`, `lib/trims`, `dict.trims`, or the removed keys.
+- Rendered `/en` and `/mk` (`next start`): the section shows the new eyebrow, heading, and requested description, 14 checklist items, and no table. Neither page mentions "version(s)"/"верзи…" or "Alumi Plus/Pro/Elite+" anywhere.
+
+**Not changed (outside the requested section):** the chatbot's system prompt in `app/api/chat/route.js` still has a "Versions and equipment" block listing per-trim features. Visitors never see it directly, but an AI-backed chatbot could still mention versions if asked.
+
+---
+
+## 2026-09-30 — Versions removed from the chatbot too
+
+**Prompt:** "yes remove it from the chatbot too", following up the previous step's note that the chatbot's system prompt still listed per-version equipment.
+
+**Output (`app/api/chat/route.js`):**
+- The "Versions and equipment" block, with trim names and per-trim features, is replaced by one line of **standard equipment on every L6 and L7**, the same items the site's equipment section shows.
+- Two new ground rules:
+  1. Don't mention versions, trims, or trim names; talk only about the L6 and L7.
+  2. Beyond the standard equipment, don't confirm optional features (touchscreen, CarPlay/Android Auto, Bluetooth, air conditioning, rear camera, leather seats, keyless entry, app functions). Say they depend on the vehicle's configuration and point to "Ask a Specialist".
+
+  Without that second rule, dropping the per-version list could let the AI claim every car has air conditioning or CarPlay, which the spec sheet says isn't true for the base configurations.
+- The rule-based fallback replies (`chat.replies` in both dictionaries) were checked: none mention versions or trim names.
+
+**Verified:**
+- `npm run lint` and `npm run build` pass.
+- The only remaining "Alumi"/"Elite" text in the route is the example inside the new don't-mention rule.
+- `/api/chat` still answers on `next start`. No AI key is set in this project, so the fallback replies answered; the new prompt rules only take effect when an Anthropic or OpenAI key is configured.

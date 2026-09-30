@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { models } from "@/lib/models";
 import { format } from "@/lib/i18n";
 
-const l6 = models.find((model) => model.id === "L6");
+const colorModels = models.filter((model) => model.colors?.length);
 
 // The colour PNGs are 1243×550 with the car spanning x = 40–968 and transparent space to the
 // right. The stage is sized to the car (928×550) and the image is shifted left by the 40px
@@ -15,9 +15,14 @@ const CAR_LEFT = 40;
 const CAR_WIDTH = 928;
 
 export default function ColorShowcase({ dict }) {
-  const [activeId, setActiveId] = useState(l6.colors[0].id);
+  const [modelId, setModelId] = useState(colorModels[0].id);
+  const [activeId, setActiveId] = useState(colorModels[0].colors[0].id);
 
-  const active = l6.colors.find((color) => color.id === activeId);
+  const model = colorModels.find((entry) => entry.id === modelId);
+  // Colour ids are shared, so the chosen colour carries over when switching model.
+  const active = model.colors.find((color) => color.id === activeId) ?? model.colors[0];
+  // The model actually pictured: the L7 borrows the L6 renders until it has its own.
+  const pictured = models.find((entry) => entry.id === (model.colorImagesFrom ?? model.id));
 
   return (
     <section id="colors" className="border-t border-silver/10">
@@ -26,6 +31,33 @@ export default function ColorShowcase({ dict }) {
           <p className="text-sm font-medium text-teal">{dict.eyebrow}</p>
           <h2 className="text-3xl font-semibold text-slate-50 sm:text-4xl">{dict.heading}</h2>
           <p className="max-w-xl text-silver">{dict.description}</p>
+        </div>
+
+        <div
+          role="group"
+          aria-label={dict.modelsLabel}
+          className="mb-8 inline-flex items-center gap-1 rounded-full border border-silver/20 bg-white/5 p-1"
+        >
+          {colorModels.map((entry) => (
+            <button
+              key={entry.id}
+              type="button"
+              onClick={() => setModelId(entry.id)}
+              aria-pressed={entry.id === modelId}
+              className="relative rounded-full px-6 py-2 text-sm font-medium text-silver transition-colors"
+            >
+              {entry.id === modelId && (
+                <motion.span
+                  layoutId="color-model-tab"
+                  className="absolute inset-0 rounded-full bg-teal"
+                  transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                />
+              )}
+              <span className={`relative z-10 ${entry.id === modelId ? "text-obsidian" : ""}`}>
+                {entry.name}
+              </span>
+            </button>
+          ))}
         </div>
 
         <div className="grid gap-10 lg:grid-cols-[1.5fr_1fr] lg:items-center">
@@ -56,13 +88,15 @@ export default function ColorShowcase({ dict }) {
             >
               {/* All four stay mounted and crossfade, so switching never waits on a download
                   and the identically framed cars appear to repaint in place. */}
-              {l6.colors.map((color) => {
-                const isActive = color.id === activeId;
+              {model.colors.map((color) => {
+                const isActive = color.id === active.id;
                 return (
                   <Image
-                    key={color.id}
+                    key={color.image}
                     src={color.image}
-                    alt={isActive ? format(dict.imageAlt, { color: color.name }) : ""}
+                    alt={
+                      isActive ? format(dict.imageAlt, { model: pictured.name, color: color.name }) : ""
+                    }
                     aria-hidden={!isActive}
                     width={1243}
                     height={550}
@@ -75,19 +109,24 @@ export default function ColorShowcase({ dict }) {
                 );
               })}
             </div>
+            {pictured.id !== model.id && (
+              <p className="relative mt-4 text-center text-xs text-silver">
+                {format(dict.borrowedImageNote, { pictured: pictured.name, model: model.name })}
+              </p>
+            )}
           </motion.div>
 
           <div className="flex flex-col gap-8">
             <div>
-              <p className="text-sm text-silver">{l6.name}</p>
+              <p className="text-sm text-silver">{model.name}</p>
               <p aria-live="polite" className="mt-1 text-3xl font-semibold text-slate-50">
                 {active.name}
               </p>
             </div>
 
             <div role="group" aria-label={dict.swatchesLabel} className="flex flex-wrap gap-5">
-              {l6.colors.map((color) => {
-                const isActive = color.id === activeId;
+              {model.colors.map((color) => {
+                const isActive = color.id === active.id;
                 return (
                   <button
                     key={color.id}
