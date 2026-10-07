@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { Car } from "lucide-react";
 import { milestones } from "@/lib/milestones";
 import { format } from "@/lib/i18n";
+import ContainedImage, { imageFrameClass } from "@/components/ContainedImage";
+import ThumbnailStrip from "@/components/ThumbnailStrip";
 
 function MilestoneGallery({ images, alt, dict, common }) {
   const [active, setActive] = useState(0);
@@ -14,54 +15,32 @@ function MilestoneGallery({ images, alt, dict, common }) {
   const markFailed = (idx) => setFailed((prev) => ({ ...prev, [idx]: true }));
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="relative aspect-video overflow-hidden rounded-2xl border border-silver/15 bg-white/[0.03]">
+    <div className="flex min-w-0 flex-col gap-3 rounded-2xl border border-white/5 bg-white/[0.02] p-3 shadow-2xl sm:p-4">
+      <div className={`${imageFrameClass} aspect-video`}>
         {failed[active] ? (
           <div className="flex h-full flex-col items-center justify-center gap-2 text-silver">
             <Car className="h-8 w-8 text-teal" />
             <span className="text-sm">{common.photoComingSoon}</span>
           </div>
         ) : (
-          <Image
+          <ContainedImage
+            key={images[active]}
             src={images[active]}
             alt={alt}
-            fill
             sizes="(min-width: 1024px) 560px, 100vw"
-            className="object-cover"
             onError={() => markFailed(active)}
           />
         )}
       </div>
 
       {images.length > 1 && (
-        <div className="flex gap-2">
-          {images.map((src, idx) => (
-            <button
-              key={src}
-              type="button"
-              onClick={() => setActive(idx)}
-              aria-label={format(dict.showPhoto, { n: idx + 1 })}
-              className={`relative h-14 flex-1 overflow-hidden rounded-lg border transition-colors ${
-                active === idx ? "border-teal" : "border-silver/20 hover:border-silver/50"
-              }`}
-            >
-              {failed[idx] ? (
-                <span className="flex h-full items-center justify-center bg-white/[0.03]">
-                  <Car className="h-4 w-4 text-silver/50" />
-                </span>
-              ) : (
-                <Image
-                  src={src}
-                  alt=""
-                  fill
-                  sizes="80px"
-                  className="object-cover"
-                  onError={() => markFailed(idx)}
-                />
-              )}
-            </button>
-          ))}
-        </div>
+        <ThumbnailStrip
+          images={images}
+          activeIndex={active}
+          onSelect={setActive}
+          labelFor={(idx) => format(dict.showPhoto, { n: idx + 1 })}
+          failed={failed}
+        />
       )}
     </div>
   );

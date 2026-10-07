@@ -761,3 +761,121 @@ Log it and verify `npm run build` passes.
 - `npm run lint` and `npm run build` pass.
 - The only remaining "Alumi"/"Elite" text in the route is the example inside the new don't-mention rule.
 - `/api/chat` still answers on `next start`. No AI key is set in this project, so the fallback replies answered; the new prompt rules only take effect when an Anthropic or OpenAI key is configured.
+
+---
+
+## 2026-10-07 — "Our Journey" timeline corrected (Romania → China → North Macedonia)
+
+**Prompt:** Update the timeline in `components/Storyline.jsx` and the dictionaries to the correct three-step journey, using the supplied EN/MK titles and descriptions:
+1. "First Contact in Romania": meeting Linktour's regional representatives, visiting the salon, and test drives.
+2. "Sealing the Deal in China": signing the partnership and exclusive distribution deal at Linktour HQ.
+3. "Arrival in North Macedonia": the first L6 and L7 vehicles arrive.
+
+Render exactly these three steps in chronological order, remove old steps, log the update, and verify `npm run build` passes.
+
+**Before:** the timeline ran China ("China Partnership") → Romania ("Romania Transit": demo L7s trucked from Romania) → Macedonia ("Macedonia Arrival": demo cars in Skopje).
+
+**Output:**
+- `lib/milestones.js`: reordered to **romania (01) → china (02) → macedonia (03)**, with the step numbers renumbered to match. Each step keeps its own photos, which fit the new story: the `romania-trip` photos show the cars in a showroom ("visit the car salon"), the `china-agreement` photos show the welcome banner at the Linktour factory and the signing, and `cars/delivered.jpg` shows two cars parked in North Macedonia. `components/Storyline.jsx` needed no change, since it renders `milestones` in array order.
+- **Dictionaries (EN and MK):** `story.milestones` is rebuilt with exactly the three supplied titles and descriptions, word for word. The old "China Partnership" / "Romania Transit" / "Macedonia Arrival" texts are gone.
+- **Section intro also updated:** it previously read "From a factory agreement in China to demo vehicles on the road in Skopje…", which described the old order. It now reads "From test drives in Romania to signing in China and the first cars in North Macedonia — three milestones behind Auravia Electric Mobility." / "Од тест-возењата во Романија, преку потпишувањето во Кина, до првите возила во Северна Македонија — три пресвртници зад Auravia Electric Mobility."
+- 291 keys, in sync.
+
+**Verified:**
+- `npm run lint` and `npm run build` pass.
+- Playwright on `next start`, EN and MK:
+  - Exactly 3 steps render in the order 01 Romania (`romania-trip` photos) → 02 China (`china-agreement`) → 03 North Macedonia (`cars`), with the supplied titles and descriptions and the new intro.
+  - None of the old titles or "by truck"/"со камион" text remain.
+  - No page errors.
+
+---
+
+## 2026-10-07 — Showcase images: never cropped, card-style framing
+
+**Prompt:** Refine vehicle and gallery images across the site (`ModelShowcase.jsx`, `Hero.jsx`, and related galleries) so nothing is awkwardly cut off:
+- Use `object-contain` or responsive aspect-ratio wrappers.
+- Add premium framing: rounded corners, breathing room, and a soft dark fill or shadow.
+- Keep images centred and balanced on desktop and mobile.
+
+Log it and verify `npm run build` passes.
+
+**Before:**
+- The hero used `object-cover` in a 4:3 frame, with hand-tuned `objectPosition` per photo to avoid clipping the ~2:1 car shots.
+- The model gallery used `object-cover object-top` in 16:10, which cropped the square interior photos top and bottom.
+- The Our Journey timeline used `object-cover` in 16:9, which cropped the people and signing photos.
+- The colours section already showed the whole car.
+
+**Output:**
+- **New `components/ContainedImage.jsx`:**
+  - `imageFrameClass`: the shared card frame, `rounded-2xl border border-white/5 bg-obsidian/50 shadow-2xl`.
+  - `ContainedImage`: shows the **whole photo** whatever its shape, centred with `p-3 sm:p-4` padding, `rounded-xl`, and a soft shadow.
+  - Behind it, a blurred (`blur-2xl`), faded (30%), slightly scaled copy of the same photo fills the rest of the frame, so the space around wide or square photos reads as intentional rather than letterboxed. Both layers share `sizes`, so the file is downloaded once.
+  - The foreground image is sized by CSS (`w-auto h-auto max-w-full max-h-full`), so it's never stretched past its real resolution, which matters for the small `interior2.jpg`.
+- **`components/Hero.jsx`:**
+  - Uses the frame and `ContainedImage`.
+  - The per-photo `objectPosition` hacks and the unused `next/image` import are removed.
+  - The frame changed from 4:3 to **16:10** after a visual check. In 4:3 the 2:1 car photos filled only ~57% of the frame with large empty bands; in 16:10 they fill ~68% with an even border.
+- **`components/ModelShowcase.jsx`** (main gallery image, 16:10) and **`components/Storyline.jsx`** (timeline image, 16:9) use the frame and `ContainedImage`.
+- **`components/ColorShowcase.jsx`:** the colour stage uses the same `imageFrameClass` for a consistent look. Its framing was already uncropped.
+- **Thumbnails keep `object-cover` on purpose:** small previews read best as uniform cropped tiles, and the full photo is one tap away.
+
+**Verified:**
+- `npm run lint` and `npm run build` pass.
+- Playwright on `next start` at 1280px and 390px, measuring every foreground image: it sits fully inside its frame, renders at its natural aspect ratio (so nothing is cropped), and isn't upscaled. That covered:
+  - hero L6 and L7
+  - all 6 L6 and all 9 L7 gallery photos (wide exteriors, square interiors, the small `interior2`)
+  - all 6 timeline photos
+- All pass, with no horizontal overflow and no page errors. Screenshots checked: hero, a square interior in the gallery, the China signing photo, and mobile.
+
+---
+
+## 2026-10-07 — Gallery redesign: main image plus one horizontal thumbnail strip
+
+**Prompt:**
+- Redesign the gallery in `components/ModelShowcase.jsx` (and related galleries): one large main image with a single, aligned horizontal row of thumbnails below it, replacing the stacked/wrapping thumbnails.
+- Show every image whole: `object-contain` in 16:9 or 4:3 wrappers.
+- Thumbnails as a `flex flex-row items-center gap-3` strip, each framed (`rounded-lg`, padding, `bg-[#080c10]/30`) with a highlighted active state. Horizontal scrolling on mobile instead of a cramped stack.
+- A polished panel around the whole module (rounded, `shadow-2xl`).
+- Use complete full-car and cabin views rather than detail close-ups that read like crops.
+
+Log it and verify `npm run build` passes.
+
+**Before:** the main image was 16:10. The thumbnails were a wrapping grid of `object-cover` tiles, so the L7's nine photos wrapped to two rows, and the gallery included close-ups (headlights, steering wheel).
+
+**Output:**
+- **New `components/ThumbnailStrip.jsx`**, shared by the model gallery and the Our Journey timeline:
+  - **Strip:** one `flex flex-row items-center gap-3` row with `overflow-x-auto`, a thin scrollbar, and snap points. It never wraps; extra thumbnails scroll sideways on any screen size.
+  - **Thumbnails:** each is a 4:3 card (`w-24`, `sm:w-28`) with `rounded-lg`, `p-1.5`, `bg-obsidian/30`, and the photo shown whole (`object-contain`, `rounded-md`).
+  - **Active state:** the active thumbnail has a teal inset ring plus glow and `aria-current`; inactive ones are dimmed to 60% with a hairline ring that brightens on hover.
+  - **Auto-scroll:** when the active photo changes, the strip scrolls to keep it centred. It uses `scrollTo` on the strip itself, never `scrollIntoView`, so the page doesn't move, and it skips the first render so loading the page scrolls nothing.
+- **`components/ModelShowcase.jsx`:**
+  - The gallery is one panel (`rounded-2xl border border-white/5 bg-white/[0.02] p-3 sm:p-4 shadow-2xl`): the main image is now **16:9**, shown whole via `ContainedImage`, with the `ThumbnailStrip` beneath it.
+  - `min-w-0` lets the strip scroll inside the grid column instead of widening it.
+  - The unused `next/image` import is removed.
+- **`components/Storyline.jsx`:** the timeline galleries use the same panel and `ThumbnailStrip`, replacing the `flex-1` cover-cropped thumbnails. The unused `next/image` import is removed.
+- **`lib/models.js`, gallery curation** (whole-car and whole-cabin views, exteriors first):
+  - **L6 (6 photos):** front three-quarter, **side profile (new)**, driving shot, dashboard, wide dashboard, panoramic roof. The headlight close-up (`img-5-14`) is removed.
+  - **L7 (7 photos):** driving shot, front three-quarter, leather seats, dashboard, cabin, driver's view, panoramic roof. The headlight (`img-5-4`) and steering-wheel (`img-18-5`) close-ups are removed.
+- **New asset `public/images/L6/side-profile.png`:** the Moon White colour render with its transparent margin trimmed and 24px of even padding added (976×583). The original had 275px of empty space on one side, which would have pushed the car off-centre.
+
+**Verified:**
+- `npm run lint` and `npm run build` pass.
+- Playwright on `next start` at 1280px and 390px:
+  - The L6 (6) and L7 (7) strips are a single row (`flex-direction: row`, `overflow-x: auto`).
+  - Clicking every thumbnail shows that photo whole in the main frame (inside the frame, natural aspect ratio). Exactly one thumbnail is active, and it's scrolled into view within the strip.
+  - On a phone the strip scrolls sideways instead of wrapping.
+  - The timeline strips are a single `object-contain` row. No horizontal page overflow, no page errors.
+- **Page scroll:** one check reported the page scroll position changing on mobile. That was Playwright auto-scrolling each thumbnail into view before clicking. Re-tested with in-page clicks, which don't auto-scroll: the page stayed at the same `scrollY` while only the strip's `scrollLeft` moved.
+- Screenshots checked at desktop and mobile.
+
+---
+
+## 2026-10-07 — Missing signing photo added to the China step
+
+**Prompt:** The handshake/signing photo (`public/images/china-agreement/avc2.jpeg`) was missing from the China agreement part of the timeline; add it.
+
+**Output:** `lib/milestones.js` adds `avc2.jpeg` to the "Sealing the Deal in China" step, after the other AVC signing photo (`avc1.jpeg`) and before `betasped.jpeg`. The step now has 4 photos.
+
+**Verified:** `npm run lint` and `npm run build` pass. On `next start`, the China step shows 4 thumbnails, and the third opens `avc2.jpeg` whole in the main frame with no image errors. Screenshot checked.
+
+**Not added (still unused):** `china-agreement/44606eaa-….jpeg`, a close-up of the factory's "Welcome AURAVIA Electric Mobility to the LINKTOUR Factory!" sign. The first China photo already shows that banner above the group, so it was left out unless wanted.

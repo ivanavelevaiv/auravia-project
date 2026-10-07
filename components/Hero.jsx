@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   CalendarCheck,
@@ -12,11 +11,11 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useBookingModal } from "@/lib/bookingModalContext";
+import ContainedImage, { imageFrameClass } from "@/components/ContainedImage";
 
 const models = [
-  // The L6 shot is ~2:1 with the car right of centre; shift the 4:3 crop so it isn't clipped.
-  { id: "L6", label: "L6", src: "/images/L6/img-5-12.jpg", position: "60% 50%" },
-  { id: "L7", label: "L7", src: "/images/L7/img-5-1.jpg", position: "75% 50%" },
+  { id: "L6", label: "L6", src: "/images/L6/img-5-12.jpg" },
+  { id: "L7", label: "L7", src: "/images/L7/img-5-1.jpg" },
 ];
 
 // Paired by position with dict.hero.highlights.
@@ -135,7 +134,7 @@ export default function Hero({ dict, common }) {
             ))}
           </div>
 
-          <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-silver/15 bg-white/[0.03]">
+          <div className={`${imageFrameClass} aspect-[16/10]`}>
             <AnimatePresence mode="wait">
               {failed[activeModel.id] ? (
                 <motion.div
@@ -159,13 +158,10 @@ export default function Hero({ dict, common }) {
                   transition={{ duration: 0.3 }}
                   className="absolute inset-0"
                 >
-                  <Image
+                  <ContainedImage
                     src={activeModel.src}
                     alt={`Linktour ${activeModel.label}`}
-                    fill
                     sizes="(min-width: 1024px) 560px, 100vw"
-                    className="object-cover"
-                    style={{ objectPosition: activeModel.position }}
                     priority={activeModel.id === models[0].id}
                     onError={() =>
                       setFailed((prev) => ({ ...prev, [activeModel.id]: true }))

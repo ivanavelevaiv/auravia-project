@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { models } from "@/lib/models";
 import { format } from "@/lib/i18n";
+import { imageFrameClass } from "@/components/ContainedImage";
 
 const colorModels = models.filter((model) => model.colors?.length);
 
@@ -66,7 +67,7 @@ export default function ColorShowcase({ dict }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="relative overflow-hidden rounded-2xl border border-silver/15 bg-white/[0.03] px-6 pb-6 pt-10 sm:px-10"
+            className={`${imageFrameClass} px-6 pb-6 pt-10 sm:px-10`}
           >
             {/* A neutral spotlight keeps the darker paints readable on the dark page; the tint
                 layer follows the selected colour. */}

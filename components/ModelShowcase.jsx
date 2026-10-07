@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeftRight,
@@ -26,6 +25,8 @@ import {
 import { getModelSpecs, models, SPEC_PLACEHOLDER, specFields } from "@/lib/models";
 import { format } from "@/lib/i18n";
 import { useBookingModal } from "@/lib/bookingModalContext";
+import ContainedImage, { imageFrameClass } from "@/components/ContainedImage";
+import ThumbnailStrip from "@/components/ThumbnailStrip";
 
 const iconMap = {
   ArrowLeftRight,
@@ -153,8 +154,9 @@ export default function ModelShowcase({ dict, common }) {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3">
-              <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-silver/15 bg-white/[0.03]">
+            {/* One gallery panel: the main photo with a single row of thumbnails beneath it. */}
+            <div className="flex min-w-0 flex-col gap-3 rounded-2xl border border-white/5 bg-white/[0.02] p-3 shadow-2xl sm:p-4">
+              <div className={`${imageFrameClass} aspect-[16/9]`}>
                 <AnimatePresence mode="wait">
                   {failedImages[galleryKey(activeModel.id, activeImage)] ? (
                     <motion.div
@@ -177,12 +179,10 @@ export default function ModelShowcase({ dict, common }) {
                       transition={{ duration: 0.3 }}
                       className="absolute inset-0"
                     >
-                      <Image
+                      <ContainedImage
                         src={activeModel.gallery[activeImage]}
                         alt={format(dict.photoAlt, { name: activeModel.name, n: activeImage + 1 })}
-                        fill
                         sizes="(min-width: 1024px) 560px, 100vw"
-                        className="object-cover object-top"
                         onError={() => markFailed(activeModel.id, activeImage)}
                       />
                     </motion.div>
@@ -190,35 +190,15 @@ export default function ModelShowcase({ dict, common }) {
                 </AnimatePresence>
               </div>
 
-              {/* Wraps instead of squeezing: the L7 has nine photos, too many for one row. */}
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(4.5rem,1fr))] gap-2">
-                {activeModel.gallery.map((src, idx) => (
-                  <button
-                    key={src}
-                    type="button"
-                    onClick={() => setActiveImage(idx)}
-                    aria-label={format(dict.showPhoto, { n: idx + 1, name: activeModel.name })}
-                    className={`relative h-16 overflow-hidden rounded-lg border transition-colors ${
-                      activeImage === idx ? "border-teal" : "border-silver/20 hover:border-silver/50"
-                    }`}
-                  >
-                    {failedImages[galleryKey(activeModel.id, idx)] ? (
-                      <span className="flex h-full items-center justify-center bg-white/[0.03]">
-                        <Car className="h-4 w-4 text-silver/50" />
-                      </span>
-                    ) : (
-                      <Image
-                        src={src}
-                        alt=""
-                        fill
-                        sizes="80px"
-                        className="object-cover"
-                        onError={() => markFailed(activeModel.id, idx)}
-                      />
-                    )}
-                  </button>
-                ))}
-              </div>
+              <ThumbnailStrip
+                images={activeModel.gallery}
+                activeIndex={activeImage}
+                onSelect={setActiveImage}
+                labelFor={(idx) => format(dict.showPhoto, { n: idx + 1, name: activeModel.name })}
+                failed={Object.fromEntries(
+                  activeModel.gallery.map((_, idx) => [idx, failedImages[galleryKey(activeModel.id, idx)]])
+                )}
+              />
             </div>
           </motion.div>
         </AnimatePresence>

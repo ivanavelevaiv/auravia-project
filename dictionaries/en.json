@@ -182,20 +182,20 @@
   },
   "story": {
     "heading": "Our Journey",
-    "description": "From a factory agreement in China to demo vehicles on the road in Skopje — three milestones behind Auravia Electric Mobility.",
+    "description": "From test drives in Romania to signing in China and the first cars in North Macedonia — three milestones behind Auravia Electric Mobility.",
     "showPhoto": "Show photo {n}",
     "milestones": {
-      "china": {
-        "title": "China Partnership",
-        "description": "AVC-SM and BetaSped signed the official agreement with Linktour Auto in China, forming the joint venture behind Auravia Electric Mobility."
-      },
       "romania": {
-        "title": "Romania Transit",
-        "description": "The first two Linktour L7 demonstration vehicles were transported by truck from Romania, giving early customers and partners a chance to experience the L7 before wider sales began."
+        "title": "First Contact in Romania",
+        "description": "We traveled to Romania to meet with regional Linktour representatives, visit the car salon, and conduct rigorous test drives to personally reassure ourselves of the premium quality of the vehicles."
+      },
+      "china": {
+        "title": "Sealing the Deal in China",
+        "description": "Following our successful tests, we traveled to Linktour's headquarters in China to officially sign the partnership and seal the exclusive distribution deal."
       },
       "macedonia": {
-        "title": "Macedonia Arrival",
-        "description": "The demo vehicles arrived in Skopje for road testing, marking the start of Auravia Electric Mobility's nationwide launch."
+        "title": "Arrival in North Macedonia",
+        "description": "The very first Linktour L6 and L7 vehicles officially arrived on Macedonian soil, marking the beginning of a new era in practical urban electric mobility."
       }
     }
   },
