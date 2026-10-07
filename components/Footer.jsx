@@ -7,6 +7,7 @@ import { ArrowUp, CalendarCheck, Mail, MapPin, Phone, Users } from "lucide-react
 import { handleSectionLinkClick, navLinks } from "@/lib/navigation";
 import { useBookingModal } from "@/lib/bookingModalContext";
 import { format } from "@/lib/i18n";
+import { clearCookieConsent } from "@/lib/cookieConsent";
 
 const contactDetails = [
   { icon: MapPin, label: "1 Aurora Way, San Francisco, CA" },
@@ -102,15 +103,26 @@ export default function Footer({ locale, dict, navLabels, common }) {
 
         <div className="mt-12 flex flex-col items-center gap-4 border-t border-silver/10 pt-6 sm:flex-row sm:justify-between">
           <p className="text-xs text-muted">{format(dict.rights, { year })}</p>
-          <motion.a
-            href="#top"
-            whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.95 }}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-muted transition-colors hover:text-accent"
-          >
-            {dict.backToTop}
-            <ArrowUp className="h-3.5 w-3.5" />
-          </motion.a>
+          <div className="flex items-center gap-5">
+            {/* Lets visitors change or withdraw cookie consent at any time: clearing the stored
+                choice brings the banner back, and analytics stops until they accept again. */}
+            <button
+              type="button"
+              onClick={clearCookieConsent}
+              className="text-xs text-muted underline-offset-4 transition-colors hover:text-ink hover:underline"
+            >
+              {dict.cookieSettings}
+            </button>
+            <motion.a
+              href="#top"
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-muted transition-colors hover:text-accent"
+            >
+              {dict.backToTop}
+              <ArrowUp className="h-3.5 w-3.5" />
+            </motion.a>
+          </div>
         </div>
       </div>
     </footer>

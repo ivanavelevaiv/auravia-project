@@ -3,6 +3,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BookingModal from "@/components/BookingModal";
 import ChatBot from "@/components/ChatBot";
+import CookieBanner from "@/components/CookieBanner";
+import Analytics from "@/components/Analytics";
 import ThemeProvider from "@/components/ThemeProvider";
 import { BookingModalProvider } from "@/lib/bookingModalContext";
 import { getDictionary } from "@/lib/dictionaries";
@@ -55,6 +57,8 @@ export default async function RootLayout({ children, params }) {
             />
             <BookingModal dict={dict.booking} common={dict.common} locale={locale} />
             <ChatBot locale={locale} dict={dict.chat} />
+            <CookieBanner dict={dict.cookies} />
+            <Analytics />
           </BookingModalProvider>
         </ThemeProvider>
       </body>

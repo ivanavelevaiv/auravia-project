@@ -968,3 +968,99 @@ Log it and verify `npm run build` passes.
 - Both hero copies of that photo are already `loading="eager"` (the photo also `fetchpriority="high"`), confirmed in the DOM.
 - The warning comes from Next's dev check (`next/dist/shared/lib/get-img-props.js`), which stores images in a map keyed by URL, where the last registration wins. The same photo is also the first image of the models gallery and its thumbnail further down the page, which are correctly lazy, so their entry overwrites the hero's.
 - Fixing the message would mean faking a distinct hero URL or loading below-the-fold gallery images eagerly, which is worse for performance. It doesn't appear in production builds.
+
+---
+
+## 2026-10-07 — Cookie consent banner
+
+**Prompt:** Add `components/CookieBanner.jsx` (`"use client"`):
+- Show it if `localStorage` has no `cookieConsent` key; Accept/Decline store the choice and hide it.
+- A floating card bottom-left (`fixed bottom-4 left-4 z-50 shadow-2xl rounded-xl`), styled for light/dark (`bg-white dark:bg-[#080c10] text-slate-900 dark:text-slate-100 border …`), with a short message, a teal "Accept", and an outlined "Decline".
+- EN/MK text ("We use cookies to enhance your browsing experience and analyze site traffic." / "Користиме колачиња…", "Accept"/"Прифати", "Decline"/"Одбиј").
+- Rendered from `app/[locale]/layout.js` on every page.
+
+Log it and verify `npm run build` passes.
+
+**Output:**
+- **New `components/CookieBanner.jsx`:**
+  - **Reading the choice:** `cookieConsent` is read through `useSyncExternalStore` instead of `useEffect` + `setState`. The project's React Compiler lint rules reject synchronous setState in an effect. On the server and during hydration the snapshot is "unknown", so the banner never renders there: no flash and no hydration mismatch.
+  - **Updates:** the banner reacts to its own `cookie-consent-change` event and to the `storage` event, so a choice made in another tab hides it too.
+  - **Storing:** Accept/Decline store `"accepted"`/`"declined"`. Access is wrapped in try/catch for browsers with storage blocked.
+  - **Export:** `getCookieConsent()` is exported so a future analytics loader can check consent.
+  - **UI:** a floating card (`fixed bottom-4 left-4 z-50 rounded-xl shadow-2xl`, max-w-sm) with a cookie icon, the message, outlined Decline and teal Accept buttons, and a slide-up entrance/exit (Framer Motion). It's a `role="region"` with a localized label and doesn't trap focus.
+  - **Phones:** it spans the width but stops at `right-24`, so it never covers the chat bubble in the bottom-right corner.
+  - **Colours:** the site's theme tokens (`bg-page text-ink border-ink/10`, `text-muted`) instead of the literal classes in the prompt. They resolve to the same colours (light #f8fafc/slate-900, dark #080c10/#f8fafc) and stay consistent with the rest of the site.
+- **`app/[locale]/layout.js`:** renders `<CookieBanner dict={dict.cookies} />` inside the providers, after the chat bot.
+- **Dictionaries (EN and MK):** `cookies.{label, message, accept, decline}` with the requested text. 298 keys, in sync.
+
+**Verified:**
+- `npm run lint` and `npm run build` pass.
+- Playwright on `next start`:
+  - **First visit:** the banner shows, fixed 16px from the bottom-left, with the exact EN and MK text and buttons, and themed colours in dark (rgb 8,12,16 / 248,250,252) and light (248,250,252 / 15,23,42).
+  - **Choice:** Accept stores `"accepted"` and Decline stores `"declined"`; each hides the banner and it stays hidden after a reload.
+  - **Errors:** no console errors.
+  - **Phones (390px):** the banner (right edge 294px) doesn't overlap the chat bubble (left edge 310px), and there's no page overflow.
+  - **Server HTML:** it contains no banner element. The message text appears only inside the RSC data script, as the props passed to the client component. A first check had flagged that text match as markup; it isn't.
+- Screenshots checked: dark desktop and light mobile.
+
+**Note:** the site currently sets no analytics or tracking cookies. The only cookie is `NEXT_LOCALE` (the language choice, which is functional), and the theme lives in `localStorage`. So "analyze site traffic" describes nothing yet, and Decline has nothing to switch off. If analytics is added later, it should load only when `getCookieConsent() === "accepted"`; otherwise the message could be reworded to match what the site actually does.
+
+---
+
+## 2026-10-07 — Google Analytics 4, gated on cookie consent
+
+**Prompt:** Add `components/Analytics.jsx` that loads GA4 (`G-S0CG947QXM`) with Next.js `<Script>`, only when the stored cookie consent is strictly `"accepted"`. With "declined" or no choice yet, the scripts must not be injected. Place it in `app/[locale]/layout.js`, log it, and verify `npm run build` passes.
+
+**Output:**
+- **New `lib/cookieConsent.js`:** the consent logic moved out of the banner so it can be shared.
+  - `getCookieConsent()`, `setCookieConsent(value)` (writes localStorage and dispatches `cookie-consent-change`), and a `useCookieConsent()` hook.
+  - The hook uses `useSyncExternalStore`: "unknown" on the server and during hydration, live in the browser, and it also follows other tabs via the `storage` event.
+  - `components/CookieBanner.jsx` now imports from here; no behaviour change.
+- **New `components/Analytics.jsx`:**
+  - Unless `useCookieConsent() === "accepted"` it returns `null`, so no scripts are injected and nothing is requested from Google. That covers "declined", no choice yet, and the server/hydration render.
+  - With consent it renders two `next/script` tags, both `strategy="afterInteractive"` (the documented strategy for analytics; the scripts are injected client-side, never into the server HTML):
+    1. `gtag/js?id=G-S0CG947QXM` from googletagmanager.com
+    2. the inline `dataLayer`/`gtag('js')`/`gtag('config', 'G-S0CG947QXM')` init
+  - Accepting mid-visit loads GA immediately, without a reload.
+  - **Consent withdrawn after load** (e.g. Decline in another tab): a loaded gtag can't be unloaded, so an effect keeps Google's documented opt-out flag `window['ga-disable-G-S0CG947QXM']` in sync with consent, which stops further hits.
+  - SPA navigations (language switch, section links) are counted by GA4's default enhanced measurement (history changes). `next/script`'s `id`s stop the scripts being injected twice.
+- **`app/[locale]/layout.js`:** renders `<Analytics />` next to `<CookieBanner />`.
+
+**Verified:**
+- `npm run lint` and `npm run build` pass.
+- Playwright on `next start`, 12/12. **GA hits were intercepted and answered locally (204), so no test traffic reached the real GA property**; only the `gtag.js` script download went out.
+  - **Not loaded:** the server HTML contains no gtag script. With no choice and with "declined" (including after a reload) there are no GA scripts in the DOM, no `window.gtag`, and **zero requests** to any Google domain.
+  - **Accept mid-visit:** without a reload, `gtag.js?id=G-S0CG947QXM` is injected, `gtag` is defined, `config` is queued, a `g/collect` page_view is attempted, and the opt-out flag is `false`.
+  - **Later visits:** with consent stored, GA loads immediately after a reload.
+  - **Navigation:** after an EN→MK language switch there's still exactly one `gtag.js` script tag, and there are no page errors.
+  - **Withdrawal:** setting "declined" via a cross-tab `storage` event after GA has loaded sets `ga-disable-G-S0CG947QXM = true`.
+
+**Note:** there's still no UI for changing consent after a choice is made. The banner disappears for good, and changing your mind currently means clearing site data. A "Cookie settings" link (e.g. in the footer) that clears the stored choice would make withdrawal easy. The analytics side already handles withdrawal.
+
+---
+
+## 2026-10-07 — "Cookie Settings" footer link (consent revocation)
+
+**Prompt:** Add a small "Cookie Settings" link to the footer that clears the saved consent and brings the cookie banner back, so visitors can change their preference. Add the EN ("Cookie Settings") and MK ("Поставки за колачиња") text. Then commit all pending changes (the cookie banner, the GA4 integration, and this footer update) as "feat: implement GDPR cookie banner and GA4 tracking with revocation support" and push.
+
+**Output:**
+- **`lib/cookieConsent.js`:** new `clearCookieConsent()` removes the stored choice and dispatches the change event.
+  - The banner (`useCookieConsent() === null`) reappears immediately.
+  - `Analytics` stops rendering its scripts and sets `ga-disable-G-S0CG947QXM = true`, so an already-loaded gtag sends nothing while the visitor is undecided or after they decline.
+- **`components/Footer.jsx`:** a "Cookie Settings" button in the bottom bar, next to "Back to top", that calls `clearCookieConsent`.
+  - It's a `<button>`, since it's an action rather than navigation.
+  - Styled `text-xs text-muted hover:text-ink hover:underline` to match the bar's other small items; the theme tokens are the equivalent of the requested slate-500 → slate-800/200 hover.
+- **Dictionaries (EN and MK):** `footer.cookieSettings`. 299 keys, in sync.
+
+**Verified:**
+- `npm run lint` and `npm run build` pass.
+- Playwright on `next start`, with GA hits intercepted locally:
+  1. Accept: GA is active.
+  2. **Cookie Settings:** the choice is cleared, the banner is back, and the opt-out flag is on. A `gtag` event fired while undecided produced **0** hits.
+  3. Decline: "declined" is stored and the banner is gone.
+  4. Reload: **no** gtag script at all.
+  5. Cookie Settings, then Accept: GA loads and is enabled again.
+  6. The MK label shows, with no overflow at 390px.
+- The previous GA4 consent suite still passes 12/12, with no page errors.
+
+**Commit:** the earlier unpushed banner-only commit (`4702561`) was folded into this one with `git reset --soft`, so the banner, GA4 integration, and revocation link ship as a single commit, as requested. It was never pushed, so no shared history was rewritten.

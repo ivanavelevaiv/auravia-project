@@ -397,6 +397,7 @@
     "explore": "Explore",
     "getInTouch": "Get in Touch",
     "rights": "© {year} Auravia Electric Mobility. All rights reserved.",
+    "cookieSettings": "Cookie Settings",
     "backToTop": "Back to top"
   },
   "chat": {
@@ -435,6 +436,12 @@
       "logistics": "BetaSped, our logistics partner with 30+ years of freight-forwarding experience, handles import and customs — vehicles arrive in Macedonia through an established, professional supply chain.",
       "fallback": "I can help with charging, comparing the L6 and L7, local warranty and service, or booking a test drive — what would you like to know? For anything specific, our specialist team can help via the \"Ask a Specialist\" form."
     }
+  },
+  "cookies": {
+    "label": "Cookie consent",
+    "message": "We use cookies to enhance your browsing experience and analyze site traffic.",
+    "accept": "Accept",
+    "decline": "Decline"
   },
   "notFound": {
     "title": "Page not found",
