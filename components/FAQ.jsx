@@ -20,11 +20,11 @@ function AccordionItem({ question, answer, isOpen, onToggle }) {
         type="button"
         onClick={onToggle}
         aria-expanded={isOpen}
-        className="flex w-full items-center justify-between gap-4 py-4 text-left text-sm font-medium text-slate-50 transition-colors hover:text-teal"
+        className="flex w-full items-center justify-between gap-4 py-4 text-left text-sm font-medium text-ink transition-colors hover:text-accent"
       >
         {question}
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-teal transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className={`h-4 w-4 shrink-0 text-accent transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
       <AnimatePresence initial={false}>
@@ -36,7 +36,7 @@ function AccordionItem({ question, answer, isOpen, onToggle }) {
             transition={{ duration: 0.25, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <p className="pb-4 text-sm text-silver">{answer}</p>
+            <p className="pb-4 text-sm text-muted">{answer}</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -146,8 +146,8 @@ export default function FAQ({ dict, common }) {
     <section id="faq" className="border-t border-silver/10">
       <div className="mx-auto max-w-3xl px-6 py-16 lg:py-24">
         <div className="mb-12 flex flex-col gap-3">
-          <h2 className="text-3xl font-semibold text-slate-50 sm:text-4xl">{dict.heading}</h2>
-          <p className="text-silver">{dict.description}</p>
+          <h2 className="text-3xl font-semibold text-ink sm:text-4xl">{dict.heading}</h2>
+          <p className="text-muted">{dict.description}</p>
         </div>
 
         <div className="flex flex-col gap-10">
@@ -162,8 +162,8 @@ export default function FAQ({ dict, common }) {
                 transition={{ duration: 0.5, ease: "easeOut" }}
               >
                 <div className="mb-2 flex items-center gap-2.5">
-                  <CategoryIcon className="h-5 w-5 text-teal" />
-                  <h3 className="text-lg font-semibold text-slate-50">{category.title}</h3>
+                  <CategoryIcon className="h-5 w-5 text-accent" />
+                  <h3 className="text-lg font-semibold text-ink">{category.title}</h3>
                 </div>
                 <div>
                   {category.items.map((item, index) => {
@@ -189,15 +189,15 @@ export default function FAQ({ dict, common }) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="mt-16 rounded-2xl border border-teal/30 bg-white/[0.03] p-6 shadow-[0_0_60px_-25px_var(--color-teal)] sm:p-8"
+          className="mt-16 rounded-2xl border border-teal/30 bg-ink/[0.03] p-6 shadow-[0_0_60px_-25px_var(--color-teal)] sm:p-8"
         >
           <div className="mb-6 flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-teal/10 text-teal">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-teal/10 text-accent">
               <MessageCircleQuestion className="h-5 w-5" />
             </span>
             <div>
-              <h3 className="text-xl font-semibold text-slate-50">{dict.specialist.title}</h3>
-              <p className="text-sm text-silver">{dict.specialist.subtitle}</p>
+              <h3 className="text-xl font-semibold text-ink">{dict.specialist.title}</h3>
+              <p className="text-sm text-muted">{dict.specialist.subtitle}</p>
             </div>
           </div>
           <SpecialistForm dict={dict.specialist} common={common} />

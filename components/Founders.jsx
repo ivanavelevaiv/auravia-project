@@ -34,8 +34,8 @@ export default function Founders({ dict }) {
     <section id="founders" className="border-t border-silver/10">
       <div className="mx-auto max-w-6xl px-6 py-16 lg:py-24">
         <div className="mb-12 flex flex-col gap-3">
-          <h2 className="text-3xl font-semibold text-slate-50 sm:text-4xl">{dict.heading}</h2>
-          <p className="max-w-xl text-silver">{dict.description}</p>
+          <h2 className="text-3xl font-semibold text-ink sm:text-4xl">{dict.heading}</h2>
+          <p className="max-w-xl text-muted">{dict.description}</p>
         </div>
 
         <div className="relative grid gap-8 lg:grid-cols-2">
@@ -48,28 +48,28 @@ export default function Founders({ dict }) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.5, ease: "easeOut", delay: index * 0.1 }}
-                className="flex flex-col gap-6 rounded-2xl border border-silver/15 bg-white/[0.03] p-8"
+                className="flex flex-col gap-6 rounded-2xl border border-silver/15 bg-ink/[0.03] p-8"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-teal/10 text-teal">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-teal/10 text-accent">
                       <partner.icon className="h-5 w-5" />
                     </span>
-                    <h3 className="text-xl font-semibold text-slate-50">{partner.name}</h3>
+                    <h3 className="text-xl font-semibold text-ink">{partner.name}</h3>
                   </div>
-                  <span className="rounded-full border border-silver/30 px-3 py-1 text-xs font-medium text-silver">
+                  <span className="rounded-full border border-silver/30 px-3 py-1 text-xs font-medium text-muted">
                     {copy.years}
                   </span>
                 </div>
 
-                <p className="text-sm text-silver">{copy.summary}</p>
+                <p className="text-sm text-muted">{copy.summary}</p>
 
                 <ul className="flex flex-col gap-3 border-t border-silver/10 pt-5">
                   {copy.capabilities.map((label, capIdx) => {
                     const Icon = partner.capabilityIcons[capIdx];
                     return (
-                      <li key={label} className="flex items-center gap-3 text-sm text-slate-100">
-                        <Icon className="h-4 w-4 shrink-0 text-teal" />
+                      <li key={label} className="flex items-center gap-3 text-sm text-ink">
+                        <Icon className="h-4 w-4 shrink-0 text-accent" />
                         {label}
                       </li>
                     );
@@ -79,7 +79,7 @@ export default function Founders({ dict }) {
             );
           })}
 
-          <span className="pointer-events-none absolute left-1/2 top-1/2 z-10 hidden h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-silver/20 bg-obsidian text-teal lg:flex">
+          <span className="pointer-events-none absolute left-1/2 top-1/2 z-10 hidden h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-silver/20 bg-page text-accent lg:flex">
             <Handshake className="h-5 w-5" />
           </span>
         </div>
@@ -91,8 +91,8 @@ export default function Founders({ dict }) {
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
           className="mt-10 flex items-start gap-3 rounded-2xl border border-teal/20 bg-teal/5 p-6"
         >
-          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-teal" />
-          <p className="text-sm text-silver">{dict.closing}</p>
+          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+          <p className="text-sm text-muted">{dict.closing}</p>
         </motion.div>
       </div>
     </section>

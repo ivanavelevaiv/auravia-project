@@ -49,17 +49,17 @@ export default function Hero({ dict, common }) {
         <motion.div variants={container} initial="hidden" animate="show" className="flex flex-col gap-6">
           <motion.div
             variants={item}
-            className="inline-flex w-fit items-center gap-2 rounded-full border border-silver/30 bg-white/5 px-4 py-1.5 text-sm text-slate-100"
+            className="inline-flex w-fit items-center gap-2 rounded-full border border-silver/30 bg-ink/5 px-4 py-1.5 text-sm text-ink"
           >
             <span aria-hidden>🟢</span>
             {dict.badge}
           </motion.div>
 
-          <motion.h1 variants={item} className="text-4xl font-semibold leading-tight text-slate-50 sm:text-5xl">
+          <motion.h1 variants={item} className="text-4xl font-semibold leading-tight text-ink sm:text-5xl">
             {dict.title}
           </motion.h1>
 
-          <motion.p variants={item} className="max-w-md text-lg text-silver">
+          <motion.p variants={item} className="max-w-md text-lg text-muted">
             {dict.subtitle}
           </motion.p>
 
@@ -78,7 +78,7 @@ export default function Hero({ dict, common }) {
             <button
               type="button"
               onClick={() => openModal("availability", { model: active })}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full sm:grow border border-teal/50 px-6 py-3 text-sm font-medium text-teal transition-colors hover:border-teal hover:bg-teal/10"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full sm:grow border border-teal/50 px-6 py-3 text-sm font-medium text-accent transition-colors hover:border-teal hover:bg-teal/10"
             >
               <PackageSearch className="h-4 w-4" />
               {common.checkAvailability}
@@ -86,7 +86,7 @@ export default function Hero({ dict, common }) {
             <button
               type="button"
               onClick={() => openModal("reserve", { model: active })}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full sm:grow border border-silver/40 px-6 py-3 text-sm font-medium text-slate-100 transition-colors hover:border-teal hover:text-teal"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full sm:grow border border-silver/40 px-6 py-3 text-sm font-medium text-ink transition-colors hover:border-teal hover:text-accent"
             >
               {common.reserve}
             </button>
@@ -97,9 +97,9 @@ export default function Hero({ dict, common }) {
               const Icon = highlightIcons[idx];
               return (
                 <div key={title} className="flex flex-col gap-2 border-t border-silver/10 pt-4">
-                  <Icon className="h-5 w-5 text-teal" />
-                  <dt className="text-sm font-medium text-slate-50">{title}</dt>
-                  <dd className="text-sm text-silver">{description}</dd>
+                  <Icon className="h-5 w-5 text-accent" />
+                  <dt className="text-sm font-medium text-ink">{title}</dt>
+                  <dd className="text-sm text-muted">{description}</dd>
                 </div>
               );
             })}
@@ -112,13 +112,13 @@ export default function Hero({ dict, common }) {
           transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
           className="relative"
         >
-          <div className="mb-4 inline-flex items-center gap-1 rounded-full border border-silver/20 bg-white/5 p-1">
+          <div className="mb-4 inline-flex items-center gap-1 rounded-full border border-silver/20 bg-ink/5 p-1">
             {models.map((model) => (
               <button
                 key={model.id}
                 type="button"
                 onClick={() => setActive(model.id)}
-                className="relative rounded-full px-5 py-2 text-sm font-medium text-silver transition-colors"
+                className="relative rounded-full px-5 py-2 text-sm font-medium text-muted transition-colors"
               >
                 {active === model.id && (
                   <motion.span
@@ -143,10 +143,10 @@ export default function Hero({ dict, common }) {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="flex h-full flex-col items-center justify-center gap-3 text-silver"
+                  className="flex h-full flex-col items-center justify-center gap-3 text-muted"
                 >
-                  <Car className="h-10 w-10 text-teal" />
-                  <span className="text-lg font-semibold text-slate-50">Linktour {activeModel.label}</span>
+                  <Car className="h-10 w-10 text-accent" />
+                  <span className="text-lg font-semibold text-ink">Linktour {activeModel.label}</span>
                   <span className="text-sm">{common.photosComingSoon}</span>
                 </motion.div>
               ) : (

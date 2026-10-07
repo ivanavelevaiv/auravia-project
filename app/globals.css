@@ -1,16 +1,50 @@
 @import "tailwindcss";
 
+/* Tailwind v4 has no tailwind.config.js `darkMode: "class"`; this is its equivalent. `dark:`
+   utilities apply inside an element with the `dark` class, which next-themes puts on <html>. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
+  /* Fixed brand colours, the same in both themes. Obsidian is also the dark text colour on
+     teal buttons, which stay bright teal in light mode too. */
   --color-obsidian: #080c10;
   --color-teal: #00f2fe;
   --color-silver: #94a3b8;
+
+  /* Theme-aware tokens: they resolve to the light or dark values below, so a class like
+     `bg-page` or `text-ink/70` adapts to the active theme without a `dark:` twin. */
+  --color-page: var(--theme-page);
+  --color-ink: var(--theme-ink);
+  --color-muted: var(--theme-muted);
+  --color-accent: var(--theme-accent);
+
   --font-sans: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Light: off-white page, slate-900 text. Muted and accent are darkened so they keep readable
+   contrast on white (silver #94a3b8 and teal #00f2fe would be ~2.6:1 and ~1.4:1 as text). */
+:root {
+  --theme-page: #f8fafc;
+  --theme-ink: #0f172a;
+  --theme-muted: #475569;
+  --theme-accent: #0e7490;
+}
+
+/* Dark: the original obsidian look. */
+.dark {
+  --theme-page: #080c10;
+  --theme-ink: #f8fafc;
+  --theme-muted: #94a3b8;
+  --theme-accent: #00f2fe;
+}
+
 body {
-  background-color: var(--color-obsidian);
-  color: #f8fafc;
+  background-color: var(--color-page);
+  color: var(--color-ink);
   font-family: var(--font-sans);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 /* --nav-height is kept in sync with the sticky navbar by Navbar.jsx. */

@@ -13,6 +13,7 @@ import {
 } from "@/lib/navigation";
 import { useBookingModal } from "@/lib/bookingModalContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Navbar({ locale, dict, common }) {
   const [scrolled, setScrolled] = useState(false);
@@ -129,7 +130,7 @@ export default function Navbar({ locale, dict, common }) {
       transition={{ duration: 0.5, ease: "easeOut" }}
       className={`sticky top-0 z-50 border-b transition-colors duration-300 ${
         scrolled
-          ? "border-silver/10 bg-obsidian/90 backdrop-blur-md"
+          ? "border-silver/10 bg-page/90 backdrop-blur-md"
           : "border-transparent bg-transparent"
       }`}
     >
@@ -144,18 +145,18 @@ export default function Navbar({ locale, dict, common }) {
               alt="Auravia"
               width={90}
               height={90}
-              priority
+              loading="eager"
               className="absolute max-w-none"
               style={{ top: "-16px", left: "-25px" }}
             />
           </span>
-          <span className="text-lg font-semibold tracking-tight text-slate-50">
+          <span className="text-lg font-semibold tracking-tight text-ink">
             Auravia
           </span>
         </Link>
 
         <nav
-          className="hidden items-center gap-1 lg:flex"
+          className="hidden items-center gap-0.5 lg:flex"
           onMouseLeave={() => setHovered(null)}
         >
           {navLinks.map((link) => (
@@ -165,15 +166,15 @@ export default function Navbar({ locale, dict, common }) {
               onClick={(event) => handleSectionLinkClick(event, link.href)}
               onMouseEnter={() => setHovered(link.href)}
               aria-current={activeHref === link.href ? "location" : undefined}
-              className={`relative whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors ${
-                activeHref === link.href ? "text-teal" : "text-silver hover:text-slate-50"
+              className={`relative whitespace-nowrap px-2.5 py-2 text-sm font-medium transition-colors ${
+                activeHref === link.href ? "text-accent" : "text-muted hover:text-ink"
               }`}
             >
               {dict.links[link.key]}
               {(hovered ?? activeHref) === link.href && (
                 <motion.span
                   layoutId="nav-underline"
-                  className="absolute inset-x-3 -bottom-px h-px bg-teal shadow-[0_0_8px_var(--color-teal)]"
+                  className="absolute inset-x-2.5 -bottom-px h-px bg-teal shadow-[0_0_8px_var(--color-teal)]"
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
                 />
               )}
@@ -181,14 +182,15 @@ export default function Navbar({ locale, dict, common }) {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 lg:flex xl:gap-3">
+        <div className="hidden items-center gap-2 lg:flex">
           <LanguageSwitcher locale={locale} labels={dict.language} />
+          <ThemeToggle labels={dict.theme} />
           <button
             type="button"
             onClick={() => openModal("waitlist")}
             aria-label={common.waitlist}
             title={common.waitlist}
-            className="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-silver/40 px-2.5 py-2 text-sm font-medium text-slate-100 transition-colors hover:border-teal hover:text-teal xl:px-4"
+            className="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-silver/40 px-2.5 py-2 text-sm font-medium text-ink transition-colors hover:border-teal hover:text-accent xl:px-4"
           >
             <Users className="h-4 w-4" />
             {/* Icon-only below xl so longer translations (e.g. Macedonian) fit the bar. */}
@@ -204,12 +206,13 @@ export default function Navbar({ locale, dict, common }) {
           </button>
         </div>
 
-        <div className="flex items-center gap-3 lg:hidden">
+        <div className="flex items-center gap-2 lg:hidden">
           <LanguageSwitcher locale={locale} labels={dict.language} />
+          <ThemeToggle labels={dict.theme} />
           <button
             type="button"
             onClick={() => setMenuOpen((open) => !open)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-silver/30 text-slate-100"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-silver/30 text-ink"
             aria-label={menuOpen ? dict.closeMenu : dict.openMenu}
             aria-expanded={menuOpen}
           >
@@ -231,7 +234,7 @@ export default function Navbar({ locale, dict, common }) {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="overflow-hidden border-t border-silver/10 bg-obsidian/95 backdrop-blur-md lg:hidden"
+            className="overflow-hidden border-t border-silver/10 bg-page/95 backdrop-blur-md lg:hidden"
           >
             <nav className="flex flex-col gap-1 px-6 py-4">
               {navLinks.map((link) => (
@@ -240,8 +243,8 @@ export default function Navbar({ locale, dict, common }) {
                   href={`/${locale}${link.href}`}
                   onClick={(event) => handleMobileLinkClick(event, link.href)}
                   aria-current={activeHref === link.href ? "location" : undefined}
-                  className={`rounded-lg px-3 py-2.5 text-base font-medium transition-colors hover:bg-white/5 ${
-                    activeHref === link.href ? "text-teal" : "text-silver hover:text-slate-50"
+                  className={`rounded-lg px-3 py-2.5 text-base font-medium transition-colors hover:bg-ink/5 ${
+                    activeHref === link.href ? "text-accent" : "text-muted hover:text-ink"
                   }`}
                 >
                   {dict.links[link.key]}
@@ -255,7 +258,7 @@ export default function Navbar({ locale, dict, common }) {
                   setMenuOpen(false);
                   openModal("waitlist");
                 }}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-silver/40 px-4 py-2.5 text-sm font-medium text-slate-100"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-silver/40 px-4 py-2.5 text-sm font-medium text-ink"
               >
                 <Users className="h-4 w-4" />
                 {common.waitlist}

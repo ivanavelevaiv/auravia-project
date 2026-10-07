@@ -56,7 +56,7 @@ export default function LanguageSwitcher({ locale, labels }) {
     <div
       role="group"
       aria-label={labels.label}
-      className={`inline-flex items-center gap-0.5 rounded-full border border-silver/25 bg-white/5 p-0.5 transition-opacity ${
+      className={`inline-flex items-center gap-0.5 rounded-full border border-silver/25 bg-ink/5 p-0.5 transition-opacity ${
         isPending ? "opacity-60" : ""
       }`}
     >
@@ -71,7 +71,7 @@ export default function LanguageSwitcher({ locale, labels }) {
             aria-pressed={isActive}
             title={labels[`${code}Name`]}
             className={`relative rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${
-              isActive ? "text-obsidian" : "text-silver hover:text-slate-50"
+              isActive ? "text-obsidian" : "text-muted hover:text-ink"
             }`}
           >
             {isActive && (

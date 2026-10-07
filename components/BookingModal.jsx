@@ -105,7 +105,7 @@ function TestDriveForm({ prefill, onDone, dict, common }) {
         <button
           type="button"
           onClick={onDone}
-          className="inline-flex w-full items-center justify-center rounded-full border border-silver/40 px-6 py-3 text-sm font-medium text-slate-100 transition-colors hover:border-teal hover:text-teal"
+          className="inline-flex w-full items-center justify-center rounded-full border border-silver/40 px-6 py-3 text-sm font-medium text-ink transition-colors hover:border-teal hover:text-accent"
         >
           {common.done}
         </button>
@@ -187,7 +187,7 @@ function TestDriveForm({ prefill, onDone, dict, common }) {
           {dateError ? (
             <FieldError id={dateErrorId}>{dateError}</FieldError>
           ) : (
-            <span id={dateHintId} className="text-xs text-silver/70">
+            <span id={dateHintId} className="text-xs text-muted/70">
               {format(dict.dateHint, displayRange)}
             </span>
           )}
@@ -266,7 +266,7 @@ function AvailabilityForm({ prefill, dict, common, locale, openModal }) {
           <button
             type="button"
             onClick={() => openModal("test-drive", { model })}
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-silver/40 px-6 py-3 text-sm font-medium text-slate-100 transition-colors hover:border-teal hover:text-teal"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-silver/40 px-6 py-3 text-sm font-medium text-ink transition-colors hover:border-teal hover:text-accent"
           >
             <CalendarCheck className="h-4 w-4" />
             {dict.titles["test-drive"]}
@@ -284,7 +284,7 @@ function AvailabilityForm({ prefill, dict, common, locale, openModal }) {
       }}
       className="flex flex-col gap-4"
     >
-      <p className="-mt-2 text-sm text-silver">{dict.availabilityIntro}</p>
+      <p className="-mt-2 text-sm text-muted">{dict.availabilityIntro}</p>
 
       <CityField value={city} onChange={setCity} locale={locale} labels={dict.availabilityLocation} />
 
@@ -360,7 +360,7 @@ function WaitlistForm({ intent, prefill, onDone, dict, common }) {
         <button
           type="button"
           onClick={onDone}
-          className="inline-flex w-full items-center justify-center rounded-full border border-silver/40 px-6 py-3 text-sm font-medium text-slate-100 transition-colors hover:border-teal hover:text-teal"
+          className="inline-flex w-full items-center justify-center rounded-full border border-silver/40 px-6 py-3 text-sm font-medium text-ink transition-colors hover:border-teal hover:text-accent"
         >
           {common.done}
         </button>
@@ -489,7 +489,7 @@ export default function BookingModal({ dict, common, locale }) {
     <AnimatePresence>
       {type && (
         <motion.div
-          className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-obsidian/80 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-page/80 p-4 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -507,22 +507,22 @@ export default function BookingModal({ dict, common, locale }) {
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
             onClick={(event) => event.stopPropagation()}
-            className="relative w-full max-w-lg rounded-2xl border border-teal/30 bg-obsidian p-6 shadow-[0_0_60px_-15px_var(--color-teal)] sm:p-8"
+            className="relative w-full max-w-lg rounded-2xl border border-teal/30 bg-page p-6 shadow-[0_0_60px_-15px_var(--color-teal)] sm:p-8"
           >
             <button
               type="button"
               onClick={closeModal}
               aria-label={common.close}
-              className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-silver/30 text-slate-100 transition-colors hover:border-teal hover:text-teal"
+              className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-silver/30 text-ink transition-colors hover:border-teal hover:text-accent"
             >
               <X className="h-4 w-4" />
             </button>
 
             <div className="mb-6 flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-teal/10 text-teal">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-teal/10 text-accent">
                 {Icon && <Icon className="h-5 w-5" />}
               </span>
-              <h2 id={titleId} className="text-xl font-semibold text-slate-50">
+              <h2 id={titleId} className="text-xl font-semibold text-ink">
                 {type ? dict.titles[type] : null}
               </h2>
             </div>

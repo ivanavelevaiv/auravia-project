@@ -42,16 +42,16 @@ export default function ThumbnailStrip({ images, activeIndex, onSelect, labelFor
             onClick={() => onSelect(idx)}
             aria-label={labelFor(idx)}
             aria-current={isActive ? "true" : undefined}
-            className={`relative aspect-[4/3] w-24 shrink-0 snap-start overflow-hidden rounded-lg bg-obsidian/30 p-1.5 transition-all duration-200 sm:w-28 ${
+            className={`relative aspect-[4/3] w-24 shrink-0 snap-start overflow-hidden rounded-lg bg-page/30 p-1.5 transition-all duration-200 sm:w-28 ${
               isActive
-                ? "opacity-100 shadow-[0_0_18px_-6px_var(--color-teal)] ring-2 ring-inset ring-teal"
-                : "opacity-60 ring-1 ring-inset ring-white/10 hover:opacity-100 hover:ring-white/25"
+                ? "opacity-100 shadow-[0_0_18px_-6px_var(--color-teal)] ring-2 ring-inset ring-accent"
+                : "opacity-60 ring-1 ring-inset ring-ink/10 hover:opacity-100 hover:ring-ink/25"
             }`}
           >
             <span className="relative block h-full w-full">
               {failed[idx] ? (
                 <span className="flex h-full items-center justify-center">
-                  <Car className="h-4 w-4 text-silver/50" />
+                  <Car className="h-4 w-4 text-muted/50" />
                 </span>
               ) : (
                 <Image src={src} alt="" fill sizes="112px" className="rounded-md object-contain" />

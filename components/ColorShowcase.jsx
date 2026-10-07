@@ -29,15 +29,15 @@ export default function ColorShowcase({ dict }) {
     <section id="colors" className="border-t border-silver/10">
       <div className="mx-auto max-w-6xl px-6 py-16 lg:py-24">
         <div className="mb-10 flex flex-col gap-3">
-          <p className="text-sm font-medium text-teal">{dict.eyebrow}</p>
-          <h2 className="text-3xl font-semibold text-slate-50 sm:text-4xl">{dict.heading}</h2>
-          <p className="max-w-xl text-silver">{dict.description}</p>
+          <p className="text-sm font-medium text-accent">{dict.eyebrow}</p>
+          <h2 className="text-3xl font-semibold text-ink sm:text-4xl">{dict.heading}</h2>
+          <p className="max-w-xl text-muted">{dict.description}</p>
         </div>
 
         <div
           role="group"
           aria-label={dict.modelsLabel}
-          className="mb-8 inline-flex items-center gap-1 rounded-full border border-silver/20 bg-white/5 p-1"
+          className="mb-8 inline-flex items-center gap-1 rounded-full border border-silver/20 bg-ink/5 p-1"
         >
           {colorModels.map((entry) => (
             <button
@@ -45,7 +45,7 @@ export default function ColorShowcase({ dict }) {
               type="button"
               onClick={() => setModelId(entry.id)}
               aria-pressed={entry.id === modelId}
-              className="relative rounded-full px-6 py-2 text-sm font-medium text-silver transition-colors"
+              className="relative rounded-full px-6 py-2 text-sm font-medium text-muted transition-colors"
             >
               {entry.id === modelId && (
                 <motion.span
@@ -111,7 +111,7 @@ export default function ColorShowcase({ dict }) {
               })}
             </div>
             {pictured.id !== model.id && (
-              <p className="relative mt-4 text-center text-xs text-silver">
+              <p className="relative mt-4 text-center text-xs text-muted">
                 {format(dict.borrowedImageNote, { pictured: pictured.name, model: model.name })}
               </p>
             )}
@@ -119,8 +119,8 @@ export default function ColorShowcase({ dict }) {
 
           <div className="flex flex-col gap-8">
             <div>
-              <p className="text-sm text-silver">{model.name}</p>
-              <p aria-live="polite" className="mt-1 text-3xl font-semibold text-slate-50">
+              <p className="text-sm text-muted">{model.name}</p>
+              <p aria-live="polite" className="mt-1 text-3xl font-semibold text-ink">
                 {active.name}
               </p>
             </div>
@@ -151,7 +151,7 @@ export default function ColorShowcase({ dict }) {
                     </span>
                     <span
                       className={`text-center text-xs leading-tight transition-colors ${
-                        isActive ? "text-slate-50" : "text-silver group-hover:text-slate-100"
+                        isActive ? "text-ink" : "text-muted group-hover:text-ink"
                       }`}
                     >
                       {color.name}

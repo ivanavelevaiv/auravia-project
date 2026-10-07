@@ -71,17 +71,17 @@ export default function ModelShowcase({ dict, common }) {
     <section id="models" className="border-t border-silver/10">
       <div className="mx-auto max-w-6xl px-6 py-16 lg:py-24">
         <div className="mb-10 flex flex-col gap-3">
-          <h2 className="text-3xl font-semibold text-slate-50 sm:text-4xl">{dict.heading}</h2>
-          <p className="max-w-xl text-silver">{dict.description}</p>
+          <h2 className="text-3xl font-semibold text-ink sm:text-4xl">{dict.heading}</h2>
+          <p className="max-w-xl text-muted">{dict.description}</p>
         </div>
 
-        <div className="mb-8 inline-flex items-center gap-1 rounded-full border border-silver/20 bg-white/5 p-1">
+        <div className="mb-8 inline-flex items-center gap-1 rounded-full border border-silver/20 bg-ink/5 p-1">
           {models.map((model) => (
             <button
               key={model.id}
               type="button"
               onClick={() => setActiveId(model.id)}
-              className="relative rounded-full px-6 py-2 text-sm font-medium text-silver transition-colors"
+              className="relative rounded-full px-6 py-2 text-sm font-medium text-muted transition-colors"
             >
               {activeId === model.id && (
                 <motion.span
@@ -108,8 +108,8 @@ export default function ModelShowcase({ dict, common }) {
           >
             <div className="flex flex-col gap-6">
               <div>
-                <h3 className="text-2xl font-semibold text-slate-50">{activeModel.name}</h3>
-                <p className="mt-1 text-silver">{activeCopy.tagline}</p>
+                <h3 className="text-2xl font-semibold text-ink">{activeModel.name}</h3>
+                <p className="mt-1 text-muted">{activeCopy.tagline}</p>
               </div>
 
               <dl className="divide-y divide-silver/10 border-y border-silver/10">
@@ -119,13 +119,13 @@ export default function ModelShowcase({ dict, common }) {
                   const isPlaceholder = value === SPEC_PLACEHOLDER;
                   return (
                     <div key={field.key} className="flex items-center justify-between gap-4 py-3">
-                      <dt className="flex items-center gap-2 text-sm text-silver">
-                        <Icon className="h-4 w-4 text-teal" />
+                      <dt className="flex items-center gap-2 text-sm text-muted">
+                        <Icon className="h-4 w-4 text-accent" />
                         {dict.specLabels[field.key]}
                       </dt>
                       <dd
                         className={`text-right text-sm font-medium ${
-                          isPlaceholder ? "italic text-silver/70" : "text-slate-50"
+                          isPlaceholder ? "italic text-muted/70" : "text-ink"
                         }`}
                       >
                         {isPlaceholder ? common.comingSoon : value}
@@ -147,7 +147,7 @@ export default function ModelShowcase({ dict, common }) {
                 <button
                   type="button"
                   onClick={() => openModal("reserve", { model: activeModel.id })}
-                  className="inline-flex items-center gap-2 rounded-full border border-silver/40 px-6 py-3 text-sm font-medium text-slate-100 transition-colors hover:border-teal hover:text-teal"
+                  className="inline-flex items-center gap-2 rounded-full border border-silver/40 px-6 py-3 text-sm font-medium text-ink transition-colors hover:border-teal hover:text-accent"
                 >
                   {common.reserve}
                 </button>
@@ -155,7 +155,7 @@ export default function ModelShowcase({ dict, common }) {
             </div>
 
             {/* One gallery panel: the main photo with a single row of thumbnails beneath it. */}
-            <div className="flex min-w-0 flex-col gap-3 rounded-2xl border border-white/5 bg-white/[0.02] p-3 shadow-2xl sm:p-4">
+            <div className="flex min-w-0 flex-col gap-3 rounded-2xl border border-ink/5 bg-ink/[0.02] p-3 shadow-2xl sm:p-4">
               <div className={`${imageFrameClass} aspect-[16/9]`}>
                 <AnimatePresence mode="wait">
                   {failedImages[galleryKey(activeModel.id, activeImage)] ? (
@@ -165,9 +165,9 @@ export default function ModelShowcase({ dict, common }) {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="flex h-full flex-col items-center justify-center gap-3 text-silver"
+                      className="flex h-full flex-col items-center justify-center gap-3 text-muted"
                     >
-                      <Car className="h-10 w-10 text-teal" />
+                      <Car className="h-10 w-10 text-accent" />
                       <span className="text-sm">{common.photoComingSoon}</span>
                     </motion.div>
                   ) : (

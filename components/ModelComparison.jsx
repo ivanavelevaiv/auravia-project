@@ -18,7 +18,7 @@ function ComparisonTable({ models: modelsDict, specificationLabel, comingSoon })
       <table className="w-full min-w-[480px] border-collapse text-left">
         <thead>
           <tr className="border-b border-silver/15">
-            <th className="px-4 py-4 text-sm font-medium text-silver sm:px-6">
+            <th className="px-4 py-4 text-sm font-medium text-muted sm:px-6">
               {specificationLabel}
             </th>
             {models.map((model) => (
@@ -27,7 +27,7 @@ function ComparisonTable({ models: modelsDict, specificationLabel, comingSoon })
                 onMouseEnter={() => setHovered(model.id)}
                 onMouseLeave={() => setHovered(null)}
                 className={`px-4 py-4 text-base font-semibold transition-colors sm:px-6 ${
-                  hovered === model.id ? "bg-teal/10 text-teal" : "text-slate-50"
+                  hovered === model.id ? "bg-teal/10 text-accent" : "text-ink"
                 }`}
               >
                 {model.name}
@@ -37,8 +37,8 @@ function ComparisonTable({ models: modelsDict, specificationLabel, comingSoon })
         </thead>
         <tbody>
           {specFields.map((field, rowIdx) => (
-            <tr key={field.key} className={rowIdx % 2 === 1 ? "bg-white/[0.02]" : undefined}>
-              <td className="px-4 py-3 text-sm text-silver sm:px-6">
+            <tr key={field.key} className={rowIdx % 2 === 1 ? "bg-ink/[0.02]" : undefined}>
+              <td className="px-4 py-3 text-sm text-muted sm:px-6">
                 {modelsDict.specLabels[field.key]}
               </td>
               {models.map((model) => {
@@ -51,7 +51,7 @@ function ComparisonTable({ models: modelsDict, specificationLabel, comingSoon })
                     onMouseLeave={() => setHovered(null)}
                     className={`whitespace-nowrap px-4 py-3 text-sm transition-colors sm:px-6 ${
                       hovered === model.id ? "bg-teal/10" : ""
-                    } ${isPlaceholder ? "italic text-silver/70" : "text-slate-100"}`}
+                    } ${isPlaceholder ? "italic text-muted/70" : "text-ink"}`}
                   >
                     {isPlaceholder ? comingSoon : value}
                   </td>
@@ -146,17 +146,17 @@ function FuelSavingsCalculator({ dict }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-80px" }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="mt-16 rounded-2xl border border-silver/15 bg-white/[0.03] p-6 sm:p-8"
+      className="mt-16 rounded-2xl border border-silver/15 bg-ink/[0.03] p-6 sm:p-8"
     >
       <div className="mb-6 flex items-center gap-3">
-        <Calculator className="h-5 w-5 text-teal" />
-        <h3 className="text-xl font-semibold text-slate-50">{dict.title}</h3>
+        <Calculator className="h-5 w-5 text-accent" />
+        <h3 className="text-xl font-semibold text-ink">{dict.title}</h3>
       </div>
 
       <label className="flex flex-col gap-3">
-        <span className="flex items-center justify-between text-sm text-silver">
+        <span className="flex items-center justify-between text-sm text-muted">
           <span>{dict.dailyDistance}</span>
-          <span className="font-medium text-slate-50">
+          <span className="font-medium text-ink">
             {format(dict.kmPerDay, { n: distance })}
           </span>
         </span>
@@ -173,11 +173,11 @@ function FuelSavingsCalculator({ dict }) {
 
       <div className="mt-8 grid gap-6 sm:grid-cols-2">
         <div className="rounded-xl border border-silver/10 p-5">
-          <p className="text-sm text-silver">{dict.monthlySavings}</p>
-          <p className="mt-2 text-3xl font-semibold text-teal">
+          <p className="text-sm text-muted">{dict.monthlySavings}</p>
+          <p className="mt-2 text-3xl font-semibold text-accent">
             {formatEUR(results.monthlySavings)}
           </p>
-          <p className="mt-1 text-xs text-silver">
+          <p className="mt-1 text-xs text-muted">
             {format(dict.vsLine, {
               fuelCost: formatEUR(results.fuelCost),
               fuel: dict.fuelNames[fuelType],
@@ -186,18 +186,18 @@ function FuelSavingsCalculator({ dict }) {
           </p>
         </div>
         <div className="rounded-xl border border-silver/10 p-5">
-          <p className="text-sm text-silver">{dict.yearlySavings}</p>
-          <p className="mt-2 text-3xl font-semibold text-teal">
+          <p className="text-sm text-muted">{dict.yearlySavings}</p>
+          <p className="mt-2 text-3xl font-semibold text-accent">
             {formatEUR(results.yearlySavings)}
           </p>
-          <p className="mt-1 text-xs text-silver">
+          <p className="mt-1 text-xs text-muted">
             {format(dict.basedOn, { km: formatInteger(distance * 365, dict.thousandsSeparator) })}
           </p>
         </div>
       </div>
 
-      <details className="mt-6 text-sm text-silver">
-        <summary className="cursor-pointer select-none text-silver hover:text-teal">
+      <details className="mt-6 text-sm text-muted">
+        <summary className="cursor-pointer select-none text-muted hover:text-accent">
           {dict.adjust}
         </summary>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -205,14 +205,14 @@ function FuelSavingsCalculator({ dict }) {
               screen-reader behaviour for free. */}
           <fieldset className="flex flex-col gap-2 sm:col-span-2">
             <legend className="mb-2">{dict.fuelType}</legend>
-            <div className="inline-flex w-fit flex-wrap gap-1 rounded-full border border-silver/20 bg-white/5 p-1">
+            <div className="inline-flex w-fit flex-wrap gap-1 rounded-full border border-silver/20 bg-ink/5 p-1">
               {FUEL_TYPES.map((type) => (
                 <label
                   key={type}
-                  className={`relative cursor-pointer rounded-full px-4 py-1.5 text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-teal ${
+                  className={`relative cursor-pointer rounded-full px-4 py-1.5 text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent ${
                     fuelType === type
                       ? "bg-teal font-medium text-obsidian"
-                      : "text-silver hover:text-slate-50"
+                      : "text-muted hover:text-ink"
                   }`}
                 >
                   <input
@@ -236,7 +236,7 @@ function FuelSavingsCalculator({ dict }) {
               step={0.5}
               value={assumptions.evConsumption}
               onChange={updateAssumption("evConsumption")}
-              className="rounded-lg border border-silver/20 bg-transparent px-3 py-2 text-slate-50 focus:border-teal focus:outline-none"
+              className="rounded-lg border border-silver/20 bg-transparent px-3 py-2 text-ink focus:border-accent focus:outline-none"
             />
           </label>
           <label className="flex flex-col gap-1">
@@ -247,7 +247,7 @@ function FuelSavingsCalculator({ dict }) {
               step={0.01}
               value={assumptions.electricityPrice}
               onChange={updateAssumption("electricityPrice")}
-              className="rounded-lg border border-silver/20 bg-transparent px-3 py-2 text-slate-50 focus:border-teal focus:outline-none"
+              className="rounded-lg border border-silver/20 bg-transparent px-3 py-2 text-ink focus:border-accent focus:outline-none"
             />
           </label>
           <label className="flex flex-col gap-1">
@@ -258,7 +258,7 @@ function FuelSavingsCalculator({ dict }) {
               step={0.5}
               value={assumptions.fuelConsumption}
               onChange={updateAssumption("fuelConsumption")}
-              className="rounded-lg border border-silver/20 bg-transparent px-3 py-2 text-slate-50 focus:border-teal focus:outline-none"
+              className="rounded-lg border border-silver/20 bg-transparent px-3 py-2 text-ink focus:border-accent focus:outline-none"
             />
           </label>
           <div className="flex flex-col gap-1">
@@ -271,24 +271,24 @@ function FuelSavingsCalculator({ dict }) {
                 value={fuelPrice}
                 onChange={updateAssumption("fuelPrice")}
                 aria-describedby={priceNoteId}
-                className="rounded-lg border border-silver/20 bg-transparent px-3 py-2 text-slate-50 focus:border-teal focus:outline-none"
+                className="rounded-lg border border-silver/20 bg-transparent px-3 py-2 text-ink focus:border-accent focus:outline-none"
               />
             </label>
-            <p id={priceNoteId} aria-live="polite" className="text-xs text-silver/70">
+            <p id={priceNoteId} aria-live="polite" className="text-xs text-muted/70">
               {priceNote}
             </p>
             {priceEdited && fuelPrice !== todaysPrice && (
               <button
                 type="button"
                 onClick={() => applyLivePrice(fuelType)}
-                className="w-fit text-xs font-medium text-teal hover:text-slate-50"
+                className="w-fit text-xs font-medium text-accent hover:text-ink"
               >
                 {format(dict.useTodaysPrice, { price: formatDecimal(todaysPrice) })}
               </button>
             )}
           </div>
         </div>
-        <p className="mt-4 text-xs text-silver/70">{dict.disclaimer}</p>
+        <p className="mt-4 text-xs text-muted/70">{dict.disclaimer}</p>
       </details>
     </motion.div>
   );
@@ -299,8 +299,8 @@ export default function ModelComparison({ dict, models: modelsDict, common }) {
     <section id="compare" className="border-t border-silver/10">
       <div className="mx-auto max-w-6xl px-6 py-16 lg:py-24">
         <div className="mb-10 flex flex-col gap-3">
-          <h2 className="text-3xl font-semibold text-slate-50 sm:text-4xl">{dict.heading}</h2>
-          <p className="max-w-xl text-silver">{dict.description}</p>
+          <h2 className="text-3xl font-semibold text-ink sm:text-4xl">{dict.heading}</h2>
+          <p className="max-w-xl text-muted">{dict.description}</p>
         </div>
 
         <ComparisonTable

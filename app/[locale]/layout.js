@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BookingModal from "@/components/BookingModal";
 import ChatBot from "@/components/ChatBot";
+import ThemeProvider from "@/components/ThemeProvider";
 import { BookingModalProvider } from "@/lib/bookingModalContext";
 import { getDictionary } from "@/lib/dictionaries";
 import { LOCALES } from "@/lib/i18n";
@@ -39,20 +40,23 @@ export default async function RootLayout({ children, params }) {
   const dict = await getDictionary(locale);
 
   return (
-    <html lang={locale} className={spaceGrotesk.variable}>
-      <body className="flex min-h-screen flex-col bg-obsidian">
-        <BookingModalProvider>
-          <Navbar locale={locale} dict={dict.nav} common={dict.common} />
-          <main className="flex-1">{children}</main>
-          <Footer
-            locale={locale}
-            dict={dict.footer}
-            navLabels={dict.nav.links}
-            common={dict.common}
-          />
-          <BookingModal dict={dict.booking} common={dict.common} locale={locale} />
-          <ChatBot locale={locale} dict={dict.chat} />
-        </BookingModalProvider>
+    // suppressHydrationWarning: next-themes sets the theme class on <html> before React hydrates.
+    <html lang={locale} className={spaceGrotesk.variable} suppressHydrationWarning>
+      <body className="flex min-h-screen flex-col bg-page text-ink">
+        <ThemeProvider>
+          <BookingModalProvider>
+            <Navbar locale={locale} dict={dict.nav} common={dict.common} />
+            <main className="flex-1">{children}</main>
+            <Footer
+              locale={locale}
+              dict={dict.footer}
+              navLabels={dict.nav.links}
+              common={dict.common}
+            />
+            <BookingModal dict={dict.booking} common={dict.common} locale={locale} />
+            <ChatBot locale={locale} dict={dict.chat} />
+          </BookingModalProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

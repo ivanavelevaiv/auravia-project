@@ -19,7 +19,7 @@ export default function Footer({ locale, dict, navLabels, common }) {
   const { openModal } = useBookingModal();
 
   return (
-    <footer className="border-t border-silver/10 bg-obsidian">
+    <footer className="border-t border-silver/10 bg-page">
       <div className="mx-auto max-w-6xl px-6 py-14">
         <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr]">
           <div className="flex flex-col gap-4">
@@ -34,9 +34,9 @@ export default function Footer({ locale, dict, navLabels, common }) {
                   style={{ top: "-16px", left: "-25px" }}
                 />
               </span>
-              <span className="text-lg font-semibold text-slate-50">Auravia</span>
+              <span className="text-lg font-semibold text-ink">Auravia</span>
             </Link>
-            <p className="max-w-xs text-sm leading-relaxed text-silver">
+            <p className="max-w-xs text-sm leading-relaxed text-muted">
               {dict.tagline}
             </p>
             <div className="flex flex-wrap items-center gap-3">
@@ -51,7 +51,7 @@ export default function Footer({ locale, dict, navLabels, common }) {
               <button
                 type="button"
                 onClick={() => openModal("waitlist")}
-                className="inline-flex items-center gap-2 rounded-full border border-silver/40 px-4 py-2 text-sm font-medium text-slate-100 transition-colors hover:border-teal hover:text-teal"
+                className="inline-flex items-center gap-2 rounded-full border border-silver/40 px-4 py-2 text-sm font-medium text-ink transition-colors hover:border-teal hover:text-accent"
               >
                 <Users className="h-4 w-4" />
                 {common.waitlist}
@@ -60,14 +60,14 @@ export default function Footer({ locale, dict, navLabels, common }) {
           </div>
 
           <div className="flex flex-col gap-3">
-            <h3 className="text-sm font-semibold text-slate-50">{dict.explore}</h3>
+            <h3 className="text-sm font-semibold text-ink">{dict.explore}</h3>
             <nav className="flex flex-col gap-2">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={`/${locale}${link.href}`}
                   onClick={(event) => handleSectionLinkClick(event, link.href)}
-                  className="text-sm text-silver transition-colors hover:text-teal"
+                  className="text-sm text-muted transition-colors hover:text-accent"
                 >
                   {navLabels[link.key]}
                 </Link>
@@ -76,20 +76,20 @@ export default function Footer({ locale, dict, navLabels, common }) {
           </div>
 
           <div className="flex flex-col gap-3">
-            <h3 className="text-sm font-semibold text-slate-50">{dict.getInTouch}</h3>
+            <h3 className="text-sm font-semibold text-ink">{dict.getInTouch}</h3>
             <ul className="flex flex-col gap-3">
               {contactDetails.map(({ icon: Icon, label, href }) => (
                 <li key={label}>
                   {href ? (
                     <a
                       href={href}
-                      className="flex items-start gap-2.5 text-sm text-silver transition-colors hover:text-teal"
+                      className="flex items-start gap-2.5 text-sm text-muted transition-colors hover:text-accent"
                     >
                       <Icon className="mt-0.5 h-4 w-4 shrink-0" />
                       <span>{label}</span>
                     </a>
                   ) : (
-                    <span className="flex items-start gap-2.5 text-sm text-silver">
+                    <span className="flex items-start gap-2.5 text-sm text-muted">
                       <Icon className="mt-0.5 h-4 w-4 shrink-0" />
                       <span>{label}</span>
                     </span>
@@ -101,12 +101,12 @@ export default function Footer({ locale, dict, navLabels, common }) {
         </div>
 
         <div className="mt-12 flex flex-col items-center gap-4 border-t border-silver/10 pt-6 sm:flex-row sm:justify-between">
-          <p className="text-xs text-silver">{format(dict.rights, { year })}</p>
+          <p className="text-xs text-muted">{format(dict.rights, { year })}</p>
           <motion.a
             href="#top"
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.95 }}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-silver transition-colors hover:text-teal"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-muted transition-colors hover:text-accent"
           >
             {dict.backToTop}
             <ArrowUp className="h-3.5 w-3.5" />

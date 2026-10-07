@@ -20,7 +20,7 @@ function ChatBubble({ role, content }) {
         className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
           isUser
             ? "bg-teal text-obsidian"
-            : "border border-silver/15 bg-white/[0.04] text-slate-100"
+            : "border border-silver/15 bg-ink/[0.04] text-ink"
         }`}
       >
         {content}
@@ -96,21 +96,21 @@ export default function ChatBot({ locale, dict }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 16 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="flex h-[28rem] w-[22rem] max-w-[calc(100vw-3rem)] flex-col overflow-hidden rounded-2xl border border-teal/30 bg-obsidian shadow-[0_0_60px_-15px_var(--color-teal)]"
+            className="flex h-[28rem] w-[22rem] max-w-[calc(100vw-3rem)] flex-col overflow-hidden rounded-2xl border border-teal/30 bg-page shadow-[0_0_60px_-15px_var(--color-teal)]"
           >
             <div className="flex items-center gap-3 border-b border-silver/10 px-4 py-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-teal/10 text-teal">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-teal/10 text-accent">
                 <Bot className="h-4 w-4" />
               </span>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-slate-50">{dict.title}</p>
-                <p className="text-xs text-silver">{dict.subtitle}</p>
+                <p className="text-sm font-semibold text-ink">{dict.title}</p>
+                <p className="text-xs text-muted">{dict.subtitle}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label={dict.close}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-silver/30 text-slate-100 transition-colors hover:border-teal hover:text-teal"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-silver/30 text-ink transition-colors hover:border-teal hover:text-accent"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -123,7 +123,7 @@ export default function ChatBot({ locale, dict }) {
               ))}
               {loading && (
                 <div className="flex justify-start">
-                  <div className="flex items-center gap-2 rounded-2xl border border-silver/15 bg-white/[0.04] px-4 py-2.5 text-sm text-silver">
+                  <div className="flex items-center gap-2 rounded-2xl border border-silver/15 bg-ink/[0.04] px-4 py-2.5 text-sm text-muted">
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     {dict.thinking}
                   </div>
@@ -137,7 +137,7 @@ export default function ChatBot({ locale, dict }) {
                   key={action.key}
                   type="button"
                   onClick={() => handleQuickAction(action)}
-                  className="rounded-full border border-silver/30 px-3 py-1.5 text-xs font-medium text-slate-100 transition-colors hover:border-teal hover:text-teal"
+                  className="rounded-full border border-silver/30 px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:border-teal hover:text-accent"
                 >
                   {dict.quickActions[action.key].label}
                 </button>
@@ -150,7 +150,7 @@ export default function ChatBot({ locale, dict }) {
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 placeholder={dict.placeholder}
-                className="flex-1 rounded-full border border-silver/20 bg-transparent px-4 py-2 text-sm text-slate-50 placeholder:text-silver/50 focus:border-teal focus:outline-none"
+                className="flex-1 rounded-full border border-silver/20 bg-transparent px-4 py-2 text-sm text-ink placeholder:text-muted/50 focus:border-accent focus:outline-none"
               />
               <button
                 type="submit"

@@ -879,3 +879,92 @@ Log it and verify `npm run build` passes.
 **Verified:** `npm run lint` and `npm run build` pass. On `next start`, the China step shows 4 thumbnails, and the third opens `avc2.jpeg` whole in the main frame with no image errors. Screenshot checked.
 
 **Not added (still unused):** `china-agreement/44606eaa-….jpeg`, a close-up of the factory's "Welcome AURAVIA Electric Mobility to the LINKTOUR Factory!" sign. The first China photo already shows that banner above the group, so it was left out unless wanted.
+
+---
+
+## 2026-10-07 — Light and dark mode with a toggle
+
+**Prompt:**
+- Install `next-themes` and enable class-based dark mode (`darkMode: 'class'` in `tailwind.config.js`).
+- Create `components/ThemeProvider.jsx` (`attribute="class"`, `defaultTheme="system"`, `enableSystem`) and wrap the children in `app/[locale]/layout.js`.
+- Add `components/ThemeToggle.jsx` with `useTheme`: a Sun icon in dark mode, a Moon icon in light mode. Put it in the navbar next to the language switcher.
+- Give the base styles a smooth light/dark transition, and make sure the components look clean in light mode while dark keeps its existing look.
+
+Log it and verify `npm run build` passes.
+
+**Deviation: no `tailwind.config.js`.** The project uses Tailwind CSS v4.3, which is configured in CSS and has no `darkMode` config option. Its equivalent, `@custom-variant dark (&:where(.dark, .dark *));`, is in `app/globals.css`, so `dark:` utilities work off the `dark` class that next-themes puts on `<html>`.
+
+**Approach: theme-aware tokens instead of a `dark:` twin on every class.**
+- About 350 colour classes across the components were built for the dark design on the site's own tokens.
+- Rather than duplicating each with a `dark:` variant, four tokens now resolve through CSS variables that switch with the theme:
+  - `page`: background (#f8fafc / #080c10)
+  - `ink`: primary text and subtle overlays (#0f172a / #f8fafc)
+  - `muted`: secondary text (#475569 / #94a3b8)
+  - `accent`: teal text and focus rings (#0e7490 / #00f2fe)
+- In light mode, `muted` and `accent` are darkened on purpose: the original silver and bright teal would be about 2.6:1 and 1.4:1 as text on white.
+- `obsidian`, `teal`, and `silver` stay fixed. Teal buttons and pills stay bright teal with obsidian text in both themes.
+- `dark:` utilities are used where they fit best: the error/warning text (`text-red-700 dark:text-red-300`, `text-red-600 dark:text-red-400`, `text-amber-700 dark:text-amber-300`).
+
+**Output:**
+- `next-themes` 0.4.6 added.
+- **`app/globals.css`:** the dark custom variant, the token definitions, the `:root` (light) and `.dark` values, and `body` using `page`/`ink` with a 0.3s `background-color`/`color` transition.
+- **Codemod, 232 class replacements in 20 files:**
+  - `bg-obsidian` → `bg-page`
+  - `text-slate-50`/`text-slate-100` → `text-ink`
+  - `text-silver` → `text-muted`
+  - `text-teal` → `text-accent`
+  - `focus:border-teal`/`ring-teal` → `…-accent`
+  - `bg-white/`, `border-white/`, `ring-white/` → `…-ink/`
+  - the red/amber `dark:` pairs above
+  - removed `[color-scheme:dark]` from `inputClass`, since next-themes now sets `color-scheme` on `<html>` and it's inherited by form fields
+
+  No old classes remain. `text-obsidian` only appears on teal pills.
+- **New `components/ThemeProvider.jsx`:** next-themes with `attribute="class"`, `defaultTheme="system"`, `enableSystem`. Its inline script applies the saved or system theme before first paint, so there's no flash.
+- **New `components/ThemeToggle.jsx`:**
+  - Reads `resolvedTheme` and toggles between light and dark.
+  - Shows a Sun in dark mode and a Moon in light mode, with a short rotate/fade swap (Framer Motion).
+  - The icon is rendered only after mount, using `useSyncExternalStore` rather than a setState-in-effect, so server and client HTML match. An empty button of the same size holds the space until then.
+  - Localized `aria-label`/`title` text.
+- **`app/[locale]/layout.js`:** wrapped in `ThemeProvider`, `suppressHydrationWarning` on `<html>` (required by next-themes), and `text-ink` on `<body>`.
+- **`components/Navbar.jsx`:**
+  - The toggle sits next to the language switcher on desktop and in the mobile bar.
+  - To make room in Macedonian, nav links are now `px-2.5` (underline inset matched), the link gap is `gap-0.5`, and the CTA gap is a constant `gap-2`.
+- **Dictionaries (EN and MK):** `nav.theme.{toggle, toLight, toDark}`. 294 keys, in sync.
+
+**Verified:**
+- `npm run lint` and `npm run build` pass.
+- Playwright on `next start`:
+  - **Default theme:** with OS light/dark emulated, the site follows the system (`<html>` class, `color-scheme`, and body background match), and the class is already set at DOMContentLoaded, so there's no flash.
+  - **Toggle:** the icon is correct (moon in light, sun in dark), the toggle flips the theme, and the choice persists across a reload even against the OS setting.
+  - **Errors:** no console or page errors in either theme.
+- **Light-mode contrast**, measured against the page background: heading 17.1:1, muted text 7.2:1, accent text 5.1:1, all at or above WCAG AA 4.5:1.
+- **Navbar with the new button:** first measured at 8px overflow (MK, 1024px) and 31px (MK, 1280px). After the spacing changes it's a 64px single row with 0 overflow in MK at 1024/1152/1280/1440 and EN at 1024/1280. On mobile the toggle shows in the bar with no overflow.
+- Light-mode screenshots checked for the hero, models gallery, colours, comparison, FAQ, booking modal, and mobile. A dark-mode screenshot was checked too; it's unchanged apart from the new sun button.
+
+---
+
+## 2026-10-07 — Fixed React 19 "Encountered a script tag" dev error from next-themes
+
+**Prompt:** Console error in development: "Encountered a script tag while rendering React component. Scripts inside React components are never executed when rendering on the client…", pointing at `<NextThemesProvider>` in `components/ThemeProvider.jsx`.
+
+**Cause:** `next-themes` 0.4.6 renders an inline `<script>` that applies the saved or system theme before first paint. That works from the server HTML, but when React creates the element in the browser, for example when the `[locale]` layout re-renders on a language switch, React 19's dev build warns, because client-created scripts never run. From React's source (`react-dom-client.development.js`), the warning is skipped for "data block" scripts, meaning a non-JavaScript `type` (`isScriptDataBlock`).
+
+**Fix (`components/ThemeProvider.jsx`):**
+- Pass `scriptProps={{ type: typeof window === "undefined" ? "text/javascript" : "text/plain" }}`.
+- The server-rendered script stays executable, so the theme is still applied before paint. The browser-created copy, which could never run anyway, becomes a data block, so React doesn't warn.
+- `next-themes` already marks the script `suppressHydrationWarning`, so the differing `type` causes no hydration warning.
+
+**Related cleanup:**
+- Next 16 deprecates `<Image priority>` in favour of `loading="eager"` + `fetchPriority="high"`.
+- `components/ContainedImage.jsx`: its `priority` flag (used by the hero) now sets `loading="eager"` on both layers and `fetchPriority="high"` on the photo. The blurred backdrop uses the same URL, so a lazy backdrop would have held back the hero's LCP.
+- `components/Navbar.jsx`: the logo uses `loading="eager"` instead of `priority`.
+
+**Verified** against the running `next dev` server, in Playwright, collecting all console errors and warnings:
+- Load, switch EN→MK→EN (which client-creates the script), toggle theme, reload: **0 script-tag warnings and 0 hydration warnings**. The theme class is set by DOMContentLoaded both before and after the toggle and reload.
+- The fix is confirmed as the cause: temporarily removing `scriptProps` and repeating the same steps reproduced the warning once. It was then restored.
+- `npm run lint` and `npm run build` pass.
+
+**Known remaining dev-only warning (false positive):** "Image with src /images/L6/img-5-12.jpg was detected as the LCP. Please add loading="eager"…".
+- Both hero copies of that photo are already `loading="eager"` (the photo also `fetchpriority="high"`), confirmed in the DOM.
+- The warning comes from Next's dev check (`next/dist/shared/lib/get-img-props.js`), which stores images in a map keyed by URL, where the last registration wins. The same photo is also the first image of the models gallery and its thumbnail further down the page, which are correctly lazy, so their entry overwrites the hero's.
+- Fixing the message would mean faking a distinct hero URL or loading below-the-fold gallery images eagerly, which is worse for performance. It doesn't appear in production builds.

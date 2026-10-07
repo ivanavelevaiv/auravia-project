@@ -77,7 +77,7 @@ export default function CityField({ value, onChange, locale, labels }) {
           type="button"
           onClick={detect}
           disabled={locating}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-teal transition-colors hover:text-slate-50 disabled:cursor-wait disabled:opacity-70"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-accent transition-colors hover:text-ink disabled:cursor-wait disabled:opacity-70"
         >
           {locating ? (
             <Loader2 aria-hidden className="h-3.5 w-3.5 animate-spin" />
@@ -90,7 +90,7 @@ export default function CityField({ value, onChange, locale, labels }) {
           id={statusId}
           role="status"
           aria-live="polite"
-          className={`text-xs ${geo.state === "error" ? "text-amber-300" : "text-silver/70"}`}
+          className={`text-xs ${geo.state === "error" ? "text-amber-700 dark:text-amber-300" : "text-muted/70"}`}
         >
           {note}
         </span>

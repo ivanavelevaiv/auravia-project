@@ -9,9 +9,9 @@ export default function StandardEquipment({ dict }) {
     <section id="equipment" className="border-t border-silver/10">
       <div className="mx-auto max-w-6xl px-6 py-16 lg:py-24">
         <div className="mb-10 flex flex-col gap-3">
-          <p className="text-sm font-medium text-teal">{dict.eyebrow}</p>
-          <h2 className="text-3xl font-semibold text-slate-50 sm:text-4xl">{dict.heading}</h2>
-          <p className="max-w-xl text-silver">{dict.description}</p>
+          <p className="text-sm font-medium text-accent">{dict.eyebrow}</p>
+          <h2 className="text-3xl font-semibold text-ink sm:text-4xl">{dict.heading}</h2>
+          <p className="max-w-xl text-muted">{dict.description}</p>
         </div>
 
         <motion.div
@@ -19,16 +19,16 @@ export default function StandardEquipment({ dict }) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="rounded-2xl border border-silver/15 bg-white/[0.03] p-6 sm:p-8"
+          className="rounded-2xl border border-silver/15 bg-ink/[0.03] p-6 sm:p-8"
         >
           <div className="mb-5 flex items-center gap-3">
-            <ListChecks className="h-5 w-5 text-teal" />
-            <h3 className="text-lg font-semibold text-slate-50">{dict.standardTitle}</h3>
+            <ListChecks className="h-5 w-5 text-accent" />
+            <h3 className="text-lg font-semibold text-ink">{dict.standardTitle}</h3>
           </div>
           <ul className="grid gap-x-8 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
             {dict.standard.map((item) => (
-              <li key={item} className="flex items-start gap-2.5 text-sm text-slate-100">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal" />
+              <li key={item} className="flex items-start gap-2.5 text-sm text-ink">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
                 {item}
               </li>
             ))}

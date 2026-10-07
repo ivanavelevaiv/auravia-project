@@ -156,10 +156,10 @@ const DatePicker = forwardRef(function DatePicker(
         aria-describedby={describedBy}
         className={`${invalid ? invalidInputClass : inputClass} flex items-center justify-between gap-2 text-left`}
       >
-        <span className={value ? "text-slate-50" : "text-silver/50"}>
+        <span className={value ? "text-ink" : "text-muted/50"}>
           {value ? formatDisplayDate(value) : labels.placeholder}
         </span>
-        <CalendarDays aria-hidden className="h-4 w-4 shrink-0 text-silver" />
+        <CalendarDays aria-hidden className="h-4 w-4 shrink-0 text-muted" />
       </button>
 
       <AnimatePresence>
@@ -174,7 +174,7 @@ const DatePicker = forwardRef(function DatePicker(
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute left-0 top-full z-20 mt-2 w-72 rounded-xl border border-teal/30 bg-obsidian p-3 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.8),0_0_30px_-15px_var(--color-teal)]"
+            className="absolute left-0 top-full z-20 mt-2 w-72 rounded-xl border border-teal/30 bg-page p-3 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.8),0_0_30px_-15px_var(--color-teal)]"
           >
             <div className="mb-2 flex items-center justify-between">
               <button
@@ -182,11 +182,11 @@ const DatePicker = forwardRef(function DatePicker(
                 onClick={() => changeMonth(-1)}
                 disabled={!canGoBack}
                 aria-label={labels.prevMonth}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-100 transition-colors hover:bg-white/5 hover:text-teal disabled:pointer-events-none disabled:opacity-25"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-ink transition-colors hover:bg-ink/5 hover:text-accent disabled:pointer-events-none disabled:opacity-25"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <p id={headingId} aria-live="polite" className="text-sm font-semibold text-slate-50">
+              <p id={headingId} aria-live="polite" className="text-sm font-semibold text-ink">
                 {labels.months[viewMonth.getMonth()]} {viewMonth.getFullYear()}
               </p>
               <button
@@ -194,7 +194,7 @@ const DatePicker = forwardRef(function DatePicker(
                 onClick={() => changeMonth(1)}
                 disabled={!canGoForward}
                 aria-label={labels.nextMonth}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-100 transition-colors hover:bg-white/5 hover:text-teal disabled:pointer-events-none disabled:opacity-25"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-ink transition-colors hover:bg-ink/5 hover:text-accent disabled:pointer-events-none disabled:opacity-25"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -204,7 +204,7 @@ const DatePicker = forwardRef(function DatePicker(
               <thead>
                 <tr>
                   {labels.weekdays.map((day, idx) => (
-                    <th key={day} scope="col" abbr={labels.weekdaysLong[idx]} className="pb-1 text-center text-[11px] font-medium text-silver/70">
+                    <th key={day} scope="col" abbr={labels.weekdaysLong[idx]} className="pb-1 text-center text-[11px] font-medium text-muted/70">
                       {day}
                     </th>
                   ))}
@@ -229,13 +229,13 @@ const DatePicker = forwardRef(function DatePicker(
                             aria-label={dayLabel(iso)}
                             aria-pressed={selected}
                             aria-current={isToday ? "date" : undefined}
-                            className={`h-9 w-9 rounded-full text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal ${
+                            className={`h-9 w-9 rounded-full text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                               selected
                                 ? "bg-teal font-semibold text-obsidian"
                                 : disabled
-                                  ? "cursor-not-allowed text-silver/25"
-                                  : "text-slate-100 hover:bg-white/10"
-                            } ${isToday && !selected ? "ring-1 ring-inset ring-teal/60" : ""}`}
+                                  ? "cursor-not-allowed text-muted/25"
+                                  : "text-ink hover:bg-ink/10"
+                            } ${isToday && !selected ? "ring-1 ring-inset ring-accent/60" : ""}`}
                           >
                             {Number(iso.slice(8))}
                           </button>
