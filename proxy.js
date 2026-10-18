@@ -20,7 +20,8 @@ export function proxy(request) {
   );
   if (hasLocalePrefix) return;
 
-  request.nextUrl.pathname = `/${preferredLocale(request)}${pathname === "/" ? "" : pathname}`;
+  // The bare domain lands on the blog; the /en and /mk homepages stay reachable directly.
+  request.nextUrl.pathname = `/${preferredLocale(request)}${pathname === "/" ? "/blog" : pathname}`;
   return NextResponse.redirect(request.nextUrl);
 }
 
