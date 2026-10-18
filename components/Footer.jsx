@@ -3,17 +3,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowUp, CalendarCheck, Mail, MapPin, Phone, Users } from "lucide-react";
+import { ArrowUp, CalendarCheck, Mail, Users } from "lucide-react";
 import { handleSectionLinkClick, navLinks, pageLinks } from "@/lib/navigation";
 import { useBookingModal } from "@/lib/bookingModalContext";
 import { format } from "@/lib/i18n";
 import { clearCookieConsent } from "@/lib/cookieConsent";
 
-const contactDetails = [
-  { icon: MapPin, label: "1 Aurora Way, San Francisco, CA" },
-  { icon: Mail, label: "hello@auravia.com", href: "mailto:hello@auravia.com" },
-  { icon: Phone, label: "+1 (555) 019-2044", href: "tel:+15550192044" },
-];
+const contactEmail = "ivana.veleva@auravia.mk";
 
 export default function Footer({ locale, dict, navLabels, common }) {
   const year = new Date().getFullYear();
@@ -87,26 +83,13 @@ export default function Footer({ locale, dict, navLabels, common }) {
 
           <div className="flex flex-col gap-3">
             <h3 className="text-sm font-semibold text-ink">{dict.getInTouch}</h3>
-            <ul className="flex flex-col gap-3">
-              {contactDetails.map(({ icon: Icon, label, href }) => (
-                <li key={label}>
-                  {href ? (
-                    <a
-                      href={href}
-                      className="flex items-start gap-2.5 text-sm text-muted transition-colors hover:text-accent"
-                    >
-                      <Icon className="mt-0.5 h-4 w-4 shrink-0" />
-                      <span>{label}</span>
-                    </a>
-                  ) : (
-                    <span className="flex items-start gap-2.5 text-sm text-muted">
-                      <Icon className="mt-0.5 h-4 w-4 shrink-0" />
-                      <span>{label}</span>
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
+            <a
+              href={`mailto:${contactEmail}`}
+              className="flex items-start gap-2.5 text-sm text-muted transition-colors hover:text-accent"
+            >
+              <Mail className="mt-0.5 h-4 w-4 shrink-0" />
+              <span className="break-all">{contactEmail}</span>
+            </a>
           </div>
         </div>
 
