@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { formatPostDate, getAllPosts } from "@/lib/blog";
 import { getDictionary } from "@/lib/dictionaries";
 import { format } from "@/lib/i18n";
@@ -20,11 +20,24 @@ export default async function BlogPage({ params }) {
 
   return (
     <section className="mx-auto max-w-6xl px-6 py-16 lg:py-24">
-      <p className="text-sm font-semibold uppercase tracking-widest text-accent">
-        {dict.blog.eyebrow}
-      </p>
-      <h1 className="mt-3 text-3xl font-semibold text-ink sm:text-4xl">{dict.blog.title}</h1>
-      <p className="mt-4 max-w-xl text-muted">{dict.blog.description}</p>
+      {/* The button comes first so it sits above the title on mobile; from `sm` it moves to the
+          right of the heading. */}
+      <header className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+        <Link
+          href={`/${locale}`}
+          className="group inline-flex items-center gap-2 self-start rounded-full bg-teal px-4 py-2 text-sm font-semibold text-obsidian shadow-sm transition-transform hover:scale-[1.03] sm:order-last sm:shrink-0"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+          {dict.blog.mainSite}
+        </Link>
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-widest text-accent">
+            {dict.blog.eyebrow}
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold text-ink sm:text-4xl">{dict.blog.title}</h1>
+          <p className="mt-4 max-w-xl text-muted">{dict.blog.description}</p>
+        </div>
+      </header>
 
       {posts.length === 0 ? (
         <p className="mt-12 text-muted">{dict.blog.empty}</p>

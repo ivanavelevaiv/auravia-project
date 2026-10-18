@@ -1096,3 +1096,22 @@ Log it and verify `npm run build` passes.
 - Playwright screenshots in dark and light at 1280px and 390px: no horizontal overflow and no page errors.
 
 **Note:** the language switcher swaps only the locale segment, so switching language on a post that exists in only one locale lands on the 404 page. Giving every post the same file name in `en/` and `mk/` avoids this.
+
+---
+
+## 2026-10-18 — "Visit Main Website" button on the Blog page
+
+**Prompt:** Add a prominent button at the top of the Blog page linking back to the homepage (`/${locale}`), styled in the primary brand colours (the suggestion was `rounded-lg bg-blue-600 …`) so first-time visitors landing on the blog can find the main site. Add the EN/MK dictionary strings, check mobile and desktop, verify `npm run build`, and log the work here.
+
+**Output:**
+- **`app/[locale]/blog/page.jsx`:** the eyebrow, title, and intro are now wrapped in a `<header>` together with a `Link` to `/${locale}`, which has a left-arrow icon and the label.
+  - **Style:** the site's primary button rather than blue, which isn't a brand colour: `rounded-full bg-teal text-obsidian px-4 py-2 text-sm font-semibold shadow-sm`, with the same `hover:scale-[1.03]` as the cookie banner's Accept button. Teal and obsidian are fixed brand tokens, so it looks the same in light and dark mode.
+  - **Layout:** on mobile the button sits above the eyebrow. From `sm` it moves to the top right of the heading (`sm:order-last`, `sm:shrink-0`). It comes first in the DOM, so keyboard and screen-reader users reach it first too.
+- **Dictionaries:** `blog.mainSite`, "Visit Main Website" / "Посети ја главната страница".
+
+**Verified:**
+- `npm run lint` and `npm run build` pass.
+- `next start` + Playwright, for `/en/blog` and `/mk/blog` at 1280px and 390px in dark and light mode:
+  - The button shows the localized label. On desktop it's top-right, level with the eyebrow; on mobile it sits above the title.
+  - No horizontal overflow and no page errors. The longer MK label (258px) fits at 390px.
+  - Clicking it goes to `/en`.
