@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowUp, CalendarCheck, Mail, MapPin, Phone, Users } from "lucide-react";
-import { handleSectionLinkClick, navLinks } from "@/lib/navigation";
+import { handleSectionLinkClick, navLinks, pageLinks } from "@/lib/navigation";
 import { useBookingModal } from "@/lib/bookingModalContext";
 import { format } from "@/lib/i18n";
 import { clearCookieConsent } from "@/lib/cookieConsent";
@@ -68,6 +68,15 @@ export default function Footer({ locale, dict, navLabels, common }) {
                   key={link.href}
                   href={`/${locale}${link.href}`}
                   onClick={(event) => handleSectionLinkClick(event, link.href)}
+                  className="text-sm text-muted transition-colors hover:text-accent"
+                >
+                  {navLabels[link.key]}
+                </Link>
+              ))}
+              {pageLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={`/${locale}${link.href}`}
                   className="text-sm text-muted transition-colors hover:text-accent"
                 >
                   {navLabels[link.key]}

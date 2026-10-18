@@ -2,12 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { CalendarCheck, Menu, Users, X } from "lucide-react";
 import {
   handleSectionLinkClick,
+  isPageLinkActive,
   navLinks,
+  pageLinks,
   scrollToSection,
   SECTION_SCROLL_EVENT,
 } from "@/lib/navigation";
@@ -33,6 +36,7 @@ export default function Navbar({ locale, dict, common }) {
     menuOpenRef.current = menuOpen;
   }, [menuOpen]);
   const { openModal } = useBookingModal();
+  const pathname = usePathname();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -180,6 +184,29 @@ export default function Navbar({ locale, dict, common }) {
               )}
             </Link>
           ))}
+          {pageLinks.map((link) => {
+            const active = isPageLinkActive(pathname, locale, link.href);
+            return (
+              <Link
+                key={link.href}
+                href={`/${locale}${link.href}`}
+                onMouseEnter={() => setHovered(link.href)}
+                aria-current={active ? "page" : undefined}
+                className={`relative whitespace-nowrap px-2.5 py-2 text-sm font-medium transition-colors ${
+                  active ? "text-accent" : "text-muted hover:text-ink"
+                }`}
+              >
+                {dict.links[link.key]}
+                {(hovered ?? (active ? link.href : null)) === link.href && (
+                  <motion.span
+                    layoutId="nav-underline"
+                    className="absolute inset-x-2.5 -bottom-px h-px bg-teal shadow-[0_0_8px_var(--color-teal)]"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="hidden items-center gap-2 lg:flex">
@@ -250,6 +277,22 @@ export default function Navbar({ locale, dict, common }) {
                   {dict.links[link.key]}
                 </Link>
               ))}
+              {pageLinks.map((link) => {
+                const active = isPageLinkActive(pathname, locale, link.href);
+                return (
+                  <Link
+                    key={link.href}
+                    href={`/${locale}${link.href}`}
+                    onClick={() => setMenuOpen(false)}
+                    aria-current={active ? "page" : undefined}
+                    className={`rounded-lg px-3 py-2.5 text-base font-medium transition-colors hover:bg-ink/5 ${
+                      active ? "text-accent" : "text-muted hover:text-ink"
+                    }`}
+                  >
+                    {dict.links[link.key]}
+                  </Link>
+                );
+              })}
             </nav>
             <div className="flex flex-col gap-3 px-6 pb-6">
               <button

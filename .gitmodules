@@ -1,0 +1,3 @@
+[submodule "content"]
+	path = content
+	url = https://github.com/ivanavelevaiv/auravia-blog-content.git

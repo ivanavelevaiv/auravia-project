@@ -27,7 +27,8 @@
       "compare": "Compare",
       "ourStory": "Our Story",
       "founders": "Founders",
-      "faq": "FAQ"
+      "faq": "FAQ",
+      "blog": "Blog"
     },
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
@@ -447,5 +448,15 @@
     "title": "Page not found",
     "description": "The page you're looking for doesn't exist or has moved.",
     "backHome": "Back to home"
+  },
+  "blog": {
+    "title": "Blog",
+    "eyebrow": "Auravia Journal",
+    "description": "News, guides, and stories from the Auravia team.",
+    "metaDescription": "News, guides, and stories about the Linktour L6 and L7 and electric mobility in North Macedonia.",
+    "by": "By {author}",
+    "readMore": "Read article",
+    "empty": "No posts yet — check back soon.",
+    "backToBlog": "All posts"
   }
 }

@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* Adds the `prose` classes used for blog post bodies (Markdown rendered to HTML). */
+@plugin "@tailwindcss/typography";
 
 /* Tailwind v4 has no tailwind.config.js `darkMode: "class"`; this is its equivalent. `dark:`
    utilities apply inside an element with the `dark` class, which next-themes puts on <html>. */
@@ -50,4 +52,25 @@ body {
 /* --nav-height is kept in sync with the sticky navbar by Navbar.jsx. */
 section[id] {
   scroll-margin-top: var(--nav-height, 4rem);
+}
+
+/* Points the typography plugin's palette at the theme tokens, so `prose-auravia` content
+   follows light/dark mode without a `dark:prose-invert` twin. */
+.prose-auravia {
+  --tw-prose-body: color-mix(in srgb, var(--color-ink) 85%, transparent);
+  --tw-prose-headings: var(--color-ink);
+  --tw-prose-lead: var(--color-muted);
+  --tw-prose-links: var(--color-accent);
+  --tw-prose-bold: var(--color-ink);
+  --tw-prose-counters: var(--color-muted);
+  --tw-prose-bullets: var(--color-silver);
+  --tw-prose-hr: color-mix(in srgb, var(--color-silver) 25%, transparent);
+  --tw-prose-quotes: var(--color-ink);
+  --tw-prose-quote-borders: var(--color-teal);
+  --tw-prose-captions: var(--color-muted);
+  --tw-prose-code: var(--color-ink);
+  --tw-prose-pre-code: #e2e8f0;
+  --tw-prose-pre-bg: #0f172a;
+  --tw-prose-th-borders: color-mix(in srgb, var(--color-silver) 40%, transparent);
+  --tw-prose-td-borders: color-mix(in srgb, var(--color-silver) 20%, transparent);
 }

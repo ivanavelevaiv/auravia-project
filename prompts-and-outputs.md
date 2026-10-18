@@ -1064,3 +1064,35 @@ Log it and verify `npm run build` passes.
 - The previous GA4 consent suite still passes 12/12, with no page errors.
 
 **Commit:** the earlier unpushed banner-only commit (`4702561`) was folded into this one with `git reset --soft`, so the banner, GA4 integration, and revocation link ship as a single commit, as requested. It was never pushed, so no shared history was rewritten.
+
+---
+
+## 2026-10-18 — Markdown blog from the `content` submodule
+
+**Prompt:** Implement a Markdown blog in the App Router, reading from the `/content` submodule. Install `gray-matter`, `remark`, and `remark-html`. Add `lib/blog.js` with `getAllPosts(locale)` (frontmatter `title`/`date`/`author`/`slug`, newest first) and `getPostBySlug(slug, locale)` (Markdown → HTML). Add `app/[locale]/blog/page.jsx` (a grid of posts with title, date, author, and a link) and `app/[locale]/blog/[slug]/page.jsx` (the post with a `prose` body, and `notFound()` for unknown slugs), styled to match the theme and dark mode. Add a "Blog" / "Блог" link to the dictionaries and the navigation. `npm run build` must pass with no lint errors; log the work here.
+
+**Output:**
+- **Dependencies:** `gray-matter`, `remark`, `remark-html`, and (dev) `@tailwindcss/typography`, which is registered with `@plugin` in `app/globals.css`.
+- **`lib/blog.js`:**
+  - `getAllPosts(locale)` reads `content/<locale>/*.md` and returns `{ title, date, author, slug }`, sorted newest first. An unknown locale or a missing/uninitialised submodule returns `[]` instead of throwing.
+  - `getPostBySlug(slug, locale)` returns the summary plus `contentHtml`, or `null`. **The slug must match `^[a-z0-9]+(-[a-z0-9]+)*$` before anything touches the filesystem**, so `../` paths can't escape `content/`.
+  - **The URL slug is the file name**, not the frontmatter `slug`, so a typo in frontmatter can't produce a dead link. Unquoted YAML dates (parsed as `Date`) are normalised to `YYYY-MM-DD`.
+  - `remark-html` **sanitizes by default** (scripts, event handlers, and raw HTML are stripped), which is why `dangerouslySetInnerHTML` is safe for the post body.
+  - `formatPostDate()` uses `Intl` in UTC (`18 October 2026` / `18 октомври 2026 г.`). It only runs on the server, so the browser-ICU hydration issue noted in `lib/i18n.js` doesn't apply.
+- **`app/[locale]/blog/page.jsx`:** eyebrow, title, intro, and a 1/2/3-column card grid (date, title, "By {author}", "Read article →"), with an empty state. Has its own metadata and canonical URL.
+- **`app/[locale]/blog/[slug]/page.jsx`:**
+  - Back link, title, date · author, and the body in `prose prose-auravia sm:prose-lg`.
+  - `generateStaticParams` prerenders every post per locale. Posts added to the submodule later still render on demand, and a slug missing in that locale calls `notFound()` (the localized 404 page).
+- **`.prose-auravia`** (in `globals.css`) points the typography plugin's colour variables at the theme tokens (`ink`, `muted`, `accent`, `teal`), so post bodies follow light/dark mode with no `dark:prose-invert` twin.
+- **Navigation:** `lib/navigation.js` gets `pageLinks` (`/blog`) next to the section `navLinks`, so Blog doesn't take part in the home-page scrollspy. The Navbar (desktop and mobile) and the Footer's "Explore" list render it. It's highlighted with `aria-current="page"` and the teal underline on `/blog` and its posts.
+- **Dictionaries (EN and MK):** `nav.links.blog` ("Blog" / "Блог") and a `blog` section (title, eyebrow, description, meta description, "By {author}", read more, empty state, "All posts").
+
+**Verified:**
+- `npm run lint` and `npm run build` pass. The build prerenders `/en/blog`, `/mk/blog`, `/en/blog/sample-post`, and `/mk/blog/sample-post`.
+- `next start` + curl:
+  - The four pages above return 200, with the MK post localized (title, `18 октомври 2026 г.`, "Од Тимот на Auravia", and `<strong>` from the Markdown).
+  - `/en/blog/nope` returns **404** with the localized not-found page, and so does `/mk/blog/..%2F..%2Fpackage`.
+  - `/blog` redirects to `/en/blog` (307).
+- Playwright screenshots in dark and light at 1280px and 390px: no horizontal overflow and no page errors.
+
+**Note:** the language switcher swaps only the locale segment, so switching language on a post that exists in only one locale lands on the 404 page. Giving every post the same file name in `en/` and `mk/` avoids this.
